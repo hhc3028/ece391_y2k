@@ -1,0 +1,187 @@
+#include "keyboard.h"
+#include "lib.h"
+#include "i8259.h"
+
+unsigned char scancode[128] =
+{
+	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
+	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
+	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+
+void keyboard_main()
+{
+	keyboard_init();
+	clear();
+	putc(getchar());
+	enable_irq(0x01);
+
+
+}
+
+unsigned char getScancode() //from OSDev
+{
+	char c=0;
+	do {
+		if(inb(KEY_PORT)!=c)
+		{
+			c=inb(KEY_PORT);
+			if(c>0)
+			return c;
+		}
+	}while(1);
+}
+
+unsigned char getchar() //from OSDev
+{
+	return scancode[getScancode()+1]; // Need to initialize this array with the codes
+}
+
+// This function is for sending out data to the keyboard
+// Use this for initializing
+// send is the data that will be sent from the user
+// It returns get, which is the data response from the keyboard
+// ACK means good, RESEND means try again
+// If too many try, it'll just return error msg
+char send_keyboard(char send)
+{
+	char get = 0;
+	int i;
+	outb(send, KEY_PORT); //KEY_PORT is whatever the PIC value for keyboard will be
+	while (1)
+	{
+		get = getScancode();
+		if(get & ACK)
+		{
+			return get; //send the ACK telling its done
+		}
+		else if(get & RESEND)
+		{
+			outb(send, KEY_PORT); //resend the msg to keyboard
+			get = getScancode();
+			i++; 	 
+		}
+		if(i > 4)
+		{
+			get = 0x00; //error flag
+			return get;
+		}
+	}
+
+}
+
+
+
+// Initializing the keyboard by sending series of data
+// Masked it with cli/sti to be safe
+void keyboard_init()
+{
+	cli();
+	char send = 0;
+	char c = 0;
+
+	send = 0xED; //set led
+	c = send_keyboard(send);
+	if(!(c & ACK))
+	{
+			printf("error on calling LED");
+	}
+	else
+	{
+		send = 0x00;
+		c = send_keyboard(send);
+		if(!(c & ACK))
+		{
+			printf("error in setting LED");
+		}
+
+	}
+
+	send = 0xF0; //get scan code
+	c = send_keyboard(send);
+	if(!(c & ACK))
+		{
+			//error msg here
+		printf("error in getting scan code");
+	}
+	else
+	{
+		send = 0x02; //set to 2?
+		c = send_keyboard(send);
+		if(!(c & ACK))
+		{
+			printf("error in setting scan code");
+		}
+	}
+	send = 0xF3; // set typematic rate
+	c = send_keyboard(send);
+	if (!(c & ACK))
+	{
+		// error msg
+		printf("error in calling typematic rate");
+	}
+	else
+	{
+		send = 0x00;//typematic rate
+		c = send_keyboard(send);
+			if(!(c & ACK))
+			{
+				printf("error in setting typematic rate");
+			}
+	}
+	send = 0xF4; //enable scanning
+	c = send_keyboard(send);
+	if(!(c & ACK))
+		{
+			//error msg here
+			printf("error in enabling scanning");
+		}
+	sti();
+
+	//there may be more codes that needs to be sent
+}
+
+// It will read keys from the keyboard
+// Translate it to the mapping that will be put in here
+void keyboard_getchar()
+{
+	//code for the key inputs here.
+	//need to map it and interpret it
+	//then have it so it can output it
+	char out = 0;
+	out = getchar();
+	if(out != 0)
+	{
+		putc(out);
+	}
+
+}
+
+void keyboard_int_handler()
+{
+	asm volatile ("pushal");
+
+	keyboard_getchar();
+	
+	send_eoi(1);
+
+	asm volatile ("popal");
+}
+<<<<<<< .mine
+
+unsigned char scancode[128] =
+{
+	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
+	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
+	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+} 
+=======
+>>>>>>> .r16119
+
