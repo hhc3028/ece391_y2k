@@ -23,19 +23,21 @@ void init_file_systems(uint32_t address)
 {
 	/* Set the address for the start of the absolute block */
 	boot_block_addr = address;
+	
 	/* Set the starting address for where the index nodes start */	
-	index_node = (inodes_t*)(boot_block_addr + sizeof(boot_block_t));
+	index_node = (inodes_t*)(boot_block_addr + 0x1000);
+	
 	/* Set the starting address for where the dir. entries */
-	dir_entries = (dentries_t*)(boot_block_addr + sizeof(boot_block_t) 
-				- (sizeof(dentries_t) * 63));
+	dir_entries = (dentries_t*)(boot_block_addr + 64);
 	
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	int total_index_nodes;
-	total_index_nodes = bootBlock -> num_inodes;
+	total_index_nodes = bootBlock->num_inodes;
+	total_index_nodes += 1;
+	
 	/* Set the starting address of the data blocks */
-	data_blocks = (data_block_t*)(boot_block_addr + sizeof(boot_block_t)
-					+ (total_index_nodes * sizeof(inodes_t)));
+	data_blocks = (data_block_t*)(boot_block_addr + (total_index_nodes * 64));
 
 	/* Initialize the dirct entry read counter */
 	dir_counter = 0;
@@ -53,9 +55,9 @@ void init_file_systems(uint32_t address)
 *	SIDE EFFECT:	sets the file name for the given dir. entry 
 *					specified by the second parameter
 */
-int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
+int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 {
-	uint32_t name_length = strnlen(fname);			// store the length of the file name
+	uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
 	
 	/* check is the file name is of valid size */
 	if(1 < name_length && name_length < NAME_SIZE)
@@ -63,7 +65,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
 		/* Get the total # of dir. entries */
 		boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 		int total_dir_entries;
-		total_dir_entries = bootBlock -> num_dentries;
+		total_dir_entries = bootBlock->num_dentries;
 
 		dentries_t curr_dentry;						// variable to keep track of current dentry
 		
@@ -73,9 +75,13 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
 		{
 			/* Copy the dir entry at index to the curr_dentry variable */
 			int bullshit = read_dentry_by_index(i, &curr_dentry);
+			if(bullshit == -1)						// if bullshit is -1
+			{
+				return -1;							// the copy by index failed
+			}
 
 			/* Call the function from Lib.c to compare the names, 0 for match */
-			int is_same = strncmp(fname, (int8_t*)curr_dentry.file_name, NAME_SIZE);
+			int is_same = strncmp((int8_t*)fname, (int8_t*)curr_dentry.file_name, NAME_SIZE);
 			
 			if(is_same == 0)						// if the names match
 			{
@@ -97,12 +103,12 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
 *	RETURN VALUE:	-1 on failure and 0 on success
 *	SIDE EFFECT:	sets the inode # to the given dentry passes
 */
-int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
+int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 {
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	int total_dir_entries;
-	total_dir_entries = bootBlock -> num_dentries;
+	total_dir_entries = bootBlock->num_dentries;
 
 	/* Check to see if the index is valid */
 	if(total_dir_entries <= index)		// is the index bigger than total amount fo dentries
@@ -111,7 +117,9 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 	}
 
 	/* Copy the dentry at index to the dentry passed as parameter */
-	*dentry = dir_entries[index];
+	strcpy((int8_t*)dentry->file_name, (const int8_t*)dir_entries[index].file_name);
+	dentry->file_type = dir_entries[index].file_type;
+	dentry->inode_num = dir_entries[index].inode_num;
 
 	return 0;							// return 0 on success of copying
 }
@@ -130,7 +138,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
 	inodes_t* curr_inode = (inodes_t*) inode;		// holds the ptr to inode
-	uint32_t file_length = curr_inode -> length_B;	// store the length of file into variable
+	uint32_t file_length = curr_inode->length_B;	// store the length of file into variable
 
 	/* Check if the file length is valid */
 	if(file_length / 4096 > 1023)					// if the file length isn't within range
@@ -158,21 +166,21 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	uint32_t start_dblock = offset - (start_index * 4096);		// get the amount of bytes in the starting dblock
 	uint32_t end_dblock = file_length - (end_index * 4096);		// get the amount of bytes in the last dblock
 
-	uint32_t buffer_index = 0;
+	uint32_t buffer_index = 0;									// index to keep track of position on the buffer
 
 	uint32_t i;													// variable to keep track of which dblock we are on
 	for(i = start_index; i <= end_index; i ++)
 	{
-		uint32_t dblock_num = index_node -> dblock[i];			// get the data block number
+		uint32_t dblock_num = curr_inode->dblock[i];			// get the data block number
 
-		data_block_t* dblock_addr = data_blocks + (sizeof(data_block_t) * dblock_num)	// get to the data block we need
+		data_block_t* dblock_addr = data_blocks + (sizeof(data_block_t) * dblock_num);	// get to the data block we need
 
 		if(i == start_index)									// if we are at the starting dblock
 		{
 			uint32_t x;
 			for(x = start_dblock; x < 4096; x ++)				// copy over for the first dblock
 			{
-				buf[buffer_index] = dblock_addr -> data_nodes[x];
+				buf[buffer_index] = dblock_addr->data_nodes[x];
 				buffer_index += 1;								// incrememnt the buffer index
 			}
 		}
@@ -181,7 +189,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 			uint32_t x;
 			for(x = 0; x < end_dblock; x ++)
 			{
-				buf[buffer_index] = dblock_addr -> data_nodes[x];
+				buf[buffer_index] = dblock_addr->data_nodes[x];
 				buffer_index += 1;
 			}
 		}
@@ -190,7 +198,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 			uint32_t x;
 			for(x = 0; x < 4096; x ++)							// copy over for dblock in the middle
 			{
-				buf[buffer_index] = dblock_addr -> data_nodes[x];
+				buf[buffer_index] = dblock_addr->data_nodes[x];
 				buffer_index += 1;								// increment the buffer index
 			}
 		}
@@ -208,40 +216,15 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 *	RETURN VALUE:	Various printf statments depending on the function being tested
 *	SIDE EFFECT:	None
 */
-void test_file_systems(uint32_t address)
+void test_file_systems(void)
 {
-	/* Initialize the file system with the address passed */
-	init_file_systems(address);
+	dentries_t test_dentry;			// dentry variable to help with testing
 
-	uint32_t temp_index;			// a temp variable to increment through the index
-	dentries_t test_dentry;			// a dir. entry variable used for testing
-
-	uint32_t test_num_dentry = boot_block_addr -> num_dentries;
-	for(temp_index = 0; temp_index < test_num_dentry; temp_index ++)
-	{
-		/* Copy the dir. entry corresponging to the index to the teest dentry */
-		read_dentry_by_index(temp_index, test_dentry);	
-
-		/* Print out the crudentials for the dir. entrie for that index */
-		printf("File Name: %s\n", test_dentry -> file_name);
-		printf("File Type: %u\n", test_dentry -> file_type);
-		printf("Inode Number: %u\n", test_dentry -> inode_num);
-		printf("\n");
-	}
-	/* Finished runing the Read by Index */
-	printf("Done with Reading by index\n");
-	printf("\n");
-
-	/* Checking the Read by Name */
-	if(read_dentry_by_name("frame1.txt", test_dentry) == 0)
-	{
-		/* If the function returns in a Success */
-		printf("Done with Read by Name\n");
-		printf("File Name: %s\n", test_dentry -> file_name); 		
-	}
-
-	/* Include Check for Read Data Function */
+	int32_t success_fail = read_dentry_by_name((uint8_t*)"frame0.txt", &test_dentry);
+	printf("%d\n", success_fail);
 }
+
+
 
 /* File Operations */
 
@@ -253,7 +236,7 @@ int32_t open_file()
 int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length)
 {
 	dentries_t test_dentry;
-	uint32_t pass_fail = read_dentry_by_name((uint8_t*) fname, &test_dentry);
+	uint32_t pass_fail = read_dentry_by_name((uint8_t *) fname, &test_dentry);
 
 	if(fname == NULL)		// if there is no filename passed
 	{
@@ -273,7 +256,21 @@ int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t 
 
 	else
 	{
-		return read_data(test_dentry -> inode_num, offset, buf, length);
+		/* If the File is a regular file, call read data */
+		if(test_dentry.file_type == 2)
+		{
+			return read_data(test_dentry.inode_num, offset, buf, length);
+		}
+		/* If the file is a directory */
+		else if(test_dentry.file_type == 1)
+		{
+			return read_dir(buf);
+		}
+		/* Otherwise just return 0 */
+		else
+		{
+			return 0;
+		}
 	}
 
 }
@@ -289,43 +286,38 @@ int32_t close_file()
 }
 
 /* Directory Operations */
-int32_t open_dirct(void)
+int32_t open_dir(void)
 {
 	return 0;
 }
 
-int32_t read_dirct(uint8_t* buf)
+int32_t read_dir(uint8_t* buf)
 {
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	int total_dir_entries;
-	total_dir_entries = bootBlock -> num_dentries;
+	total_dir_entries = bootBlock->num_dentries;
 
-	/* See if we have already read all the dir entries in the system */
-	if(total_dir_entries <= dir_counter)
+	/* Check if we have already read all the directories */
+	if(total_dir_entries <= dir_counter)		// if we already read all directories
 	{
-		dir_counter = 0;		// reset the dir_counter back to 0
-		return 0;				// return success (0)
-	} 
+		dir_counter = 0;						// reset the directory read counter back to 0
+		return 0;								// return success (0)
+	}	
 
-	/* If there are still dir entries left to read */
-	int8_t fname = dir_entries[dir_counter] -> file_name;
-	strcpy((int8_t*)buf, (const int8_t*) fname)
+	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
+	dir_counter = dir_counter + 1;				// increment the num of directories read
 
-	/* Increment the num of dir entries read */
-	dir_counter = dir_counter + 1;
-
-	uint32_t name_length = strlen((int8_t*)fname);
-	return name_length;
-
+	uint32_t length_read = strlen((const int8_t*) buf);
+	return length_read;
 }
 
-int32_t write_dirct(void)
+int32_t write_dir(void)
 {
 	return -1;
 }
 
-int32_t close_dirct(void)
+int32_t close_dir(void)
 {
 	return 0;
 }
