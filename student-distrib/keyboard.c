@@ -158,14 +158,11 @@ void keyboard_getchar()
 		break;
 	}
 	out = scancode[flag][s_code];
-	if(i < 128)
-	{
-		buf[i] = out;
-		i++;
-	}
 	if((out != 0) && (i < 128))
 	{
-		putc(buf[i - 1]);
+		buf[i] = out;
+		putc(buf[i]);
+		i++;
 	}
 
 }
