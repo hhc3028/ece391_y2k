@@ -12,6 +12,9 @@
 #define STATUS_PORT 0x64
 #define KEYBOARD_IRQ 0x01
 
+unsigned char buf[128];
+uint8_t i;
+
 void initialize_keyboard(void);
 void keyboard_getchar(void);
 unsigned char getchar(void);
