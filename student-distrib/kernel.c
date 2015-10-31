@@ -24,6 +24,9 @@
 void
 entry (unsigned long magic, unsigned long addr)
 {
+	/* Initialize the idt */
+	init_idt();
+
 	multiboot_info_t *mbi;
 
 	/* Clear the screen. */
@@ -156,14 +159,13 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
-	init_idt();
 	initialize_paging();
 
 	/* initialize the RTC to 2Hz */
 	rtc_initialize();
 	
 	/* initialize keyboard */
-	//keyboard_main();
+	initialize_keyboard();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
