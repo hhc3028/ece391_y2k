@@ -11,6 +11,14 @@
 #define L_SHFT_REL 0xAA
 #define BACKSPACE 0x0E
 
+<<<<<<< HEAD
+static int c_flag = 0;
+static int flag = 0;
+static int ctrl_flag = 0;
+static char buf[128] = '\0';
+
+=======
+>>>>>>> master
 /* Array for the characters without shift or CAPS */
 unsigned char scancode[4][90] =
 {
@@ -72,7 +80,11 @@ void initialize_keyboard() {
 unsigned char getScancode() //from OSDev
 {
 	unsigned char c = inb(KEY_PORT);
+<<<<<<< HEAD
 	if((c > 0) && (c < 0x58) || (c == R_SHFT_REL) || (c == L_SHFT_REL) || (c == )	
+=======
+	if((c > 0) && (c < 0x58) || (c == R_SHFT_REL) || (c == L_SHFT_REL) || (c == CTRL_REL))
+>>>>>>> master
 		return c;
 	else
 		return 0;
@@ -92,20 +104,33 @@ void keyboard_getchar()
 	//need to map it and interpret it
 	//then have it so it can output it
 	unsigned char out = 0;
+<<<<<<< HEAD
+=======
 	int flag = 0;
 	int c_flag = 0;
 	int ctrl_flag = 0;
+>>>>>>> master
 	char s_code = getScancode();
 	switch (s_code)
 	{
 	case(RIGHT_SHFT || LEFT_SHFT):
-		if(flag = 2)
+		if(flag == 2)
 			flag = 3;
 		else
 			flag = 1;
 		break;
-	case((c == R_SHFT_REL) || (c == L_SHFT_REL)):
-		if(flag = 3)
+<<<<<<< HEAD
+	case(R_SHFT_REL || L_SHFT_REL):
+=======
+	case(R_SHFT_REL):
+		if(flag == 3)
+			flag = 2;
+		else 
+			flag = 0;
+		break;
+	case(L_SHFT_REL):
+>>>>>>> master
+		if(flag == 3)
 			flag = 2;
 		else 
 			flag = 0;
@@ -113,7 +138,7 @@ void keyboard_getchar()
 	case(CAPS):
 		if(c_flag == 0)
 		{
-			if(flag = 1)
+			if(flag == 1)
 				flag = 3;
 			else
 				flag = 2;
@@ -121,7 +146,7 @@ void keyboard_getchar()
 		}
 		else
 		{
-			if(flag = 3)
+			if(flag == 3)
 				flag = 1;
 			else 
 				flag = 0;
@@ -150,14 +175,22 @@ void keyboard_getchar()
 		break;
 	}
 	out = scancode[flag][s_code];
+<<<<<<< HEAD
+	if(i < 128)
+=======
 	(if i < 128)
+>>>>>>> master
 	{
 		buf[i] = out;
 		i++;
 	}
+<<<<<<< HEAD
 	if((out != 0) && (i < 128))
+=======
+	if((out != 0) && (i < 129))
+>>>>>>> master
 	{
-		putc(out);
+		putc(buf[i - 1]);
 	}
 
 }
@@ -172,4 +205,3 @@ void keyboard_int_handler()
 	/* Signal the interrupt is finished */
 	send_eoi(KEYBOARD_IRQ);
 }
-
