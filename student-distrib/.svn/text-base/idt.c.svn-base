@@ -10,11 +10,19 @@
 /* We use the SET_ENTRY macro from here and some constants*/
 #include "x86_desc.h"
 #include "keyboard.h"
+#include "interrupt.h"
 /* Macros. */
 /* Retrieve the bit BIT from FLAGS. */
 #define CHECK_FLAG(flags,bit)   ((flags >> bit) & 0x01)
-#define VIDEO 0xB8000
-static char* video_mem = (char *)VIDEO;
+
+/* Video Memory Information */
+/* Uncomment this with other video seconds to add pink screen */
+//#define VIDEO 0xB8000
+//static char* video_mem = (char *)VIDEO;
+
+/* Linkage to the assembler wrapper for the interrupt handlers */
+extern uint32_t rtc_wrapper(void);
+extern uint32_t keyboard_wrapper(void);
 
 /* Constants */
 /* Constant for a present exception */
@@ -24,7 +32,7 @@ static char* video_mem = (char *)VIDEO;
 /* Constant for a generic unitialized interrupt */
 #define GENERIC 0x06
 /* Constant for a present interrupt */
-#define INTERR 0x86
+#define INTERR 0x96
 /* Constant for a system call */
 #define SYS_CALL 0xF7
 
@@ -34,9 +42,6 @@ int i;
 /* Consulted www.jamesmolloy.co.uk/tutorial_html/4.-The%20GDT%20and%20IDT.html, section 4.4.4*/
 /* This handler if generic interrupts */
 void isr_handler() {
-	/* Push a dummy error code */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -488,11 +493,10 @@ void init_idt() {
 
 	/* This section may be used to initialize interrupts we know ahead of time */
 
-	IDT_ENTRY_SETUP(&idt[0x28], (uint32_t)rtc_int_handler, KERNEL_CS, INTERR);
-	enable_irq(0x08);
+	IDT_ENTRY_SETUP(&idt[0x28], (uint32_t)rtc_wrapper, KERNEL_CS, INTERR);
 
-	IDT_ENTRY_SETUP(&idt[0x21], (uint32_t)keyboard_int_handler, KERNEL_CS, INTERR);
-	enable_irq(0x01);
+	IDT_ENTRY_SETUP(&idt[0x21], (uint32_t)keyboard_wrapper, KERNEL_CS, INTERR);
+
 	/* Set up the idtr to point to the idt */
 	lidt(idt_desc_ptr);
 }

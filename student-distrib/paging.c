@@ -21,12 +21,7 @@ void initialize_paging()
 	int i;								// variable to iterate and initialize
 	for(i = 0; i < table_size; i ++)
 	{
-		if(i != 0) {
-			pageTable[i] = enable_present;		// set to write
-		}
-		else {
-			pageTable[i] = 0;
-		}
+		pageTable[i] = 0;
 		pageTable[i] |= (i << 12);
 		pageDirct[i] = enable_write;
 		pageDirct[i] |= (i << 12);
@@ -37,7 +32,7 @@ void initialize_paging()
 
 
 	pageDirct[0] |= (((unsigned int) pageTable) & 0xFFFFF000) | enable_present;		// set the present bit for the video
-	pageDirct[1] = (0x400000) | enable_global | enable_present | enable_4MB | enable_write;	// set the present bit for the kernel as well as the 4MB bit
+	pageDirct[1] = (0x400000) | enable_present | enable_4MB | enable_write;	// set the present bit for the kernel as well as the 4MB bit
 
 	load_paging_dirct((uint32_t)pageDirct);
 	enable_paging();
@@ -52,7 +47,7 @@ void enable_paging()
         "movl %%eax, %%cr4   				;"
                                   		
         "movl %%cr0, %%eax   				;"
-        "orl  $0x80000000, %%eax 			;"
+        "orl  $0x80000001, %%eax 			;"
         "movl %%eax, %%cr0					"
             : /* no outputs */
             : /* no inputs */
@@ -65,6 +60,7 @@ void load_paging_dirct(uint32_t address)
 	// took this code from OSDev
 	asm volatile (
 		"movl %0, %%eax						;"
+		"andl $0xFFFFFFE7, %%eax			;"
 		"movl %%eax, %%cr3					"
 			:/* no output */
 			: "g" (address)

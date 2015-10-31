@@ -7,11 +7,11 @@
 
 /*
 *	rtc_intialize
-*	DESCRIPTION:	initialize the RTC with set freq = 2Hz
+*	DESCRIPTION:	initialize the RTC with set freq = 1024Hz
 *	INPUT:			None
 *	OUTPUT:			None
 *	RETURN VALUE:	None
-*	SIDE EFFECT:	sets the freq of RTC to 2Hz
+*	SIDE EFFECT:	sets the freq of RTC to 1024Hz
 *
 */
 uint32_t rtc_initialize()
@@ -19,11 +19,12 @@ uint32_t rtc_initialize()
 	cli();										// masks the interrupts
 	outb(inb(INDEX_PORT) | 0x80, INDEX_PORT);	// disables Non-maskable interrupts
 
-	outb(STATUS_B, INDEX_PORT);					// set the index to register B
+	outb(STATUS_A, INDEX_PORT);					// set the index to register B
 	char prev = inb(DATA_PORT);					// read the current value of register B
 	outb(STATUS_B, INDEX_PORT);					//set index again
 	outb(prev | 0x40, DATA_PORT);				//enable bit 6 of register B
-	setFreq(1024);									// call function to set the frq = 2Hz
+	setFreq(FREQ);								// call function to set the frq = 2Hz
+	enable_irq(0x08);
 
 	outb(inb(INDEX_PORT) & 0x7F, INDEX_PORT);	// enable Non-maskable interrupts
 	sti();										// unmask the interrupts
@@ -41,13 +42,12 @@ uint32_t rtc_initialize()
 */
 void rtc_int_handler(void)						// simple RTC for Checkpoint 1
 {
-	cli();
-
+	/* Read in a byte to throw away */
+	outb(STATUS_C, INDEX_PORT);
+	inb(DATA_PORT);
 	test_interrupts();
-	
-	send_eoi(8);
-
-	sti();
+	/* Signal the end of the interrupt */
+	send_eoi(RTC_IRQ);
 }
 
 /*
