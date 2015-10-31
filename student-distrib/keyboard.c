@@ -6,9 +6,10 @@
 #define LEFT_SHFT 0x2A
 #define CAPS 0x3A
 #define CTRL 0x1D
-#define CAPS_REL 0xBA
+#define CTRL_REL 0x9D
 #define R_SHFT_REL 0xB6
 #define L_SHFT_REL 0xAA
+#define BACKSPACE 0x0E
 
 /* Array for the characters without shift or CAPS */
 unsigned char scancode[4][90] =
@@ -58,6 +59,7 @@ unsigned char scancode[4][90] =
 void initialize_keyboard() {
 	/* Enable the irq of the PIC for the keyboard */
 	enable_irq(KEYBOARD_IRQ);
+	i = 0;
 }
 
 /**
@@ -91,6 +93,8 @@ void keyboard_getchar()
 	//then have it so it can output it
 	unsigned char out = 0;
 	int flag = 0;
+	int c_flag = 0;
+	int ctrl_flag = 0;
 	char s_code = getScancode();
 	switch (s_code)
 	{
@@ -99,6 +103,12 @@ void keyboard_getchar()
 			flag = 3;
 		else
 			flag = 1;
+		break;
+	case((c == R_SHFT_REL) || (c == L_SHFT_REL)):
+		if(flag = 3)
+			flag = 2;
+		else 
+			flag = 0;
 		break;
 	case(CAPS):
 		if(c_flag == 0)
@@ -115,14 +125,37 @@ void keyboard_getchar()
 				flag = 1;
 			else 
 				flag = 0;
+			c_flag = 0;
+		}
+		break;
+	case(CTRL):
+		ctrl_flag = 1;
+		break;
+	case(CTRL_REL):
+		ctrl_flag = 0;
+		break;
+	case(0x28): // 0x28 is scan value of L
+		if(ctrl_flag == 1)
+		{
+			s_code = 0x01; //clear the L scan value so it won't print
+		}
+			//clear screen
+		break;
+	case(BACKSPACE):
+		if(i > 0)
+		{
+			buf[i] = '\0';
+			i--;
 		}
 		break;
 	}
-	case(CTRL):
-		
-
 	out = scancode[flag][s_code];
-	if(out != 0)
+	(if i < 128)
+	{
+		buf[i] = out;
+		i++;
+	}
+	if((out != 0) && (i < 128))
 	{
 		putc(out);
 	}
