@@ -1,11 +1,21 @@
-boot.o: boot.S multiboot.h x86_desc.h types.h
-x86_desc.o: x86_desc.S x86_desc.h types.h
-i8259.o: i8259.c i8259.h types.h lib.h
-idt.o: idt.c idt.h lib.h types.h i8259.h rtc.h keyboard.h x86_desc.h
-kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
-  rtc.h paging.h keyboard.h idt.h
-keyboard.o: keyboard.c keyboard.h types.h lib.h i8259.h
-keyboard.o: keyboard.c keyboard.h lib.h types.h
-lib.o: lib.c lib.h types.h
-paging.o: paging.c x86_desc.h types.h paging.h lib.h
-rtc.o: rtc.c rtc.h types.h i8259.h lib.h
+#ifndef _KEYBOARD_H
+#define _KEYBOARD_H
+
+#include "types.h"
+#include "lib.h"
+
+#define ACK 0xFA
+#define RESEND 0xFE
+#define RELEASE 0xF0
+
+#define KEY_PORT 0x60
+#define STATUS_PORT 0x64
+#define KEYBOARD_IRQ 0x01
+
+void initialize_keyboard(void);
+void keyboard_getchar(void);
+unsigned char getchar(void);
+unsigned char getScancode(void);
+void keyboard_int_handler(void);
+
+#endif /* _KEYBOARD_H*/

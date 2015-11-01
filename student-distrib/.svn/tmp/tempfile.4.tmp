@@ -1,163 +1,62 @@
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
-#include "types.h"
 
-void keyboard_main()
+/* Array for the characters without shift or CAPS */
+unsigned char scancode[128] =
 {
-	keyboard_init();
-	set_keymap();
-<<<<<<< .mine
-	while(1)
-	{
-		keyboard_getchar();
-	}
+	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
+	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
+	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
 
-=======
-	enable_irq(0x01);
->>>>>>> .r16112
+/**
+ *	Description: initialize_keyboard: enables the PIC to allow keyboard
+ *				 interrupts
+ *	Inputs: str: None
+ *	Outputs: None
+ *	Return: None
+ *	Side Effects: Changes the irq mask to include the keyboard
+ */
+void initialize_keyboard() {
+	/* Enable the irq of the PIC for the keyboard */
+	enable_irq(KEYBOARD_IRQ);
 }
 
+/**
+ *	Description: getScancode: retrieves the key that was pressed 
+ *	Inputs: None
+ *	Outputs: None
+ *	Return: Return the key that was pressed
+ *	Side Effects: Reads a byte from port 0x60 or the Keyboard port
+ */
 unsigned char getScancode() //from OSDev
 {
-	char c=0;
-	do {
-<<<<<<< .mine
-		c = inb(0x60);
-		if(c != 0)
-=======
-		if(inb(KEY_PORT)!=c)
->>>>>>> .r16112
-		{
-<<<<<<< .mine
-			c = inb(0x60);
-=======
-			c=inb(KEY_PORT);
->>>>>>> .r16112
-			if(c>0)
-			return c;
-		}
-	}while(1);
-}
-
-unsigned char getchar() //from OSDev
-{
-	return scancode[getScancode()]; // Need to initialize this array with the codes
-}
-
-// This function is for sending out data to the keyboard
-// Use this for initializing
-// send is the data that will be sent from the user
-// It returns get, which is the data response from the keyboard
-// ACK means good, RESEND means try again
-// If too many try, it'll just return error msg
-char send_keyboard(char send)
-{
-	char get = 0;
-	int i;
-	outb(send, port); //port is whatever the PIC value for keyboard will be
-	while (1)
-	{
-		get = getScancode();
-		if(get & ACK)
-		{
-			return get; //send the ACK telling its done
-		}
-		else if(get & RESEND)
-		{
-			outb(send, port); //resend the msg to keyboard
-			get = getScancode();
-			i++; 	 
-		}
-		if(i > 4)
-		{
-			get = 0x00; //error flag
-			return get;
-		}
-	}
-
-}
-
-
-
-// Initializing the keyboard by sending series of data
-// Masked it with cli/sti to be safe
-void keyboard_init()
-{
-	cli();
-	char send = 0;
-	char c = 0;
-
-	send = 0xED; //set led
-	c = send_keyboard(send);
-	if(!(c & ACK))
-	{
-			printf("error on calling LED");
-	}
+	unsigned char c = inb(KEY_PORT);
+	if((c > 0) && (c < 0x58))	
+		return c;
 	else
-	{
-		send = 0x00;
-		c = send_keyboard(send);
-		if(!(c & ACK))
-		{
-			printf("error in setting LED");
-		}
-
-	}
-
-	send = 0xF0; //get scan code
-	c = send_keyboard(send);
-	if(!(c & ACK))
-		{
-			//error msg here
-		printf("error in getting scan code");
-	}
-	else
-	{
-		send = 0x02; //set to 2?
-		c = send_keyboard(send);
-		if(!(c & ACK))
-		{
-			printf("error in setting scan code");
-		}
-	}
-	send = 0xF3; // set typematic rate
-	c = send_keyboard(send);
-	if (!(c & ACK))
-	{
-		// error msg
-		printf("error in calling typematic rate");
-	}
-	else
-	{
-		send = 0x00;//typematic rate
-		c = send_keyboard(send);
-			if(!(c & ACK))
-			{
-				printf("error in setting typematic rate");
-			}
-	}
-	send = 0xF4; //enable scanning
-	c = send_keyboard(send);
-	if(!(c & ACK))
-		{
-			//error msg here
-			printf("error in enabling scanning");
-		}
-	sti();
-
-	//there may be more codes that needs to be sent
+		return 0;
 }
 
-// It will read keys from the keyboard
-// Translate it to the mapping that will be put in here
+/**
+ *	Description: keyboard_getchar : retrieves a typed character from
+ *				 the keyboard and echos it onto the screen 
+ *	Inputs: None
+ *	Outputs: None
+ *	Return: None
+ *	Side Effects: Echos a typed character onto the screen
+ */
 void keyboard_getchar()
 {
 	//code for the key inputs here.
 	//need to map it and interpret it
 	//then have it so it can output it
-	char out = 0;
-	out = getchar();
+	unsigned char out = 0;
+	out = scancode[getScancode()];
 	if(out != 0)
 	{
 		putc(out);
@@ -165,95 +64,14 @@ void keyboard_getchar()
 
 }
 
-void set_keymap()
+/* Interrupt handler for the keyboard */
+void keyboard_int_handler()
 {
-	//the values with 0 means I could knot find the right value I should be putting in
-	//We only have to implement the regular keys for now which is all initialized.
-	scancode[0x01] = 0; //F9
-	scancode[0x03] = 0; //F5
-	scancode[0x04] = 0; //F3
-	scancode[0x05] = 0; //F1
-	scancode[0x06] = 0; //F2
-	scancode[0x07] = 0; //F12
-	scancode[0x09] = 0; //F10
-	scancode[0x0A] = 0; //F8
-	scancode[0x0B] = 0; //F6
-	scancode[0x0C] = 0; //F4
-	scancode[0x0D] = 0x09; //TAB
-	scancode[0x0E] = 0x60; //`
-	scancode[0x11] = 0; //Left Alt
-	scancode[0x12] = 0; //Left Shift
-	scancode[0x14] = 0; //Left Ctrl
-	scancode[0x15] = 0x71; //Q
-	scancode[0x16] = 0x31; //1
-	scancode[0x1A] = 0x7A; //Z
-	scancode[0x1B] = 0x73; //S
-	scancode[0x1C] = 0x61; //A
-	scancode[0x1D] = 0x77; //W
-	scancode[0x1E] = 0x32; //2
-	scancode[0x21] = 0x63; //C
-	scancode[0x22] = 0x78; //X
-	scancode[0x23] = 0x64; //D
-	scancode[0x24] = 0x65; //E
-	scancode[0x25] = 0x34; //4
-	scancode[0x26] = 0x33; //3
-	scancode[0x29] = 0x20; //SPACE
-	scancode[0x2A] = 0x76; //V
-	scancode[0x2B] = 0x66; //F
-	scancode[0x2C] = 0x74; //T
-	scancode[0x2D] = 0x72; //R
-	scancode[0x2E] = 0x73; //5
-	scancode[0x31] = 0x6E; //N
-	scancode[0x32] = 0x62; //B
-	scancode[0x33] = 0x68; //H
-	scancode[0x34] = 0x67; //G
-	scancode[0x35] = 0x79; //Y
-	scancode[0x36] = 0x36; //6
-	scancode[0x3A] = 0x6D; //M
-	scancode[0x3B] = 0x6A; //J
-	scancode[0x3C] = 0x75; //U
-	scancode[0x3D] = 0x37; //7
-	scancode[0x3E] = 0x38; //8
-	scancode[0x41] = 0x2C; //,
-	scancode[0x42] = 0x6B; //K
-	scancode[0x43] = 0x69; //I
-	scancode[0x44] = 0x6F; //O
-	scancode[0x45] = 0x30; //0
-	scancode[0x46] = 0x39; //9
-	scancode[0x49] = 0x2E; //.
-	scancode[0x4A] = 0x2F; // "/"
-	scancode[0x4B] = 0x6C; //L
-	scancode[0x4C] = 0x3B; //;
-	scancode[0x4D] = 0x70; //P
-	scancode[0x4E] = 0x2D; //-
-	scancode[0x52] = 0x27; //'
-	scancode[0x54] = 0x5B; //[
-	scancode[0x55] = 0x3D; //=
-	scancode[0x58] = 0; //CAP LOCK
-	scancode[0x59] = 0; //Right SHIFT
-	scancode[0x5A] = 0; //ENTER
-	scancode[0x5B] = 0x5D; //]
-	scancode[0x5D] = 0x5C; // "\"
-	scancode[0x66] = 0x08; //BACKSPACE
-	scancode[0x69] = 0x31; //Keypad 1
-	scancode[0x6B] = 0x34; //Keypad 4
-	scancode[0x6C] = 0x37; //Keypad 7
-	scancode[0x70] = 0x30; //Keypad 0
-	scancode[0x71] = 0; //Keypad
-	scancode[0x72] = 0x32; //Keypad 2
-	scancode[0x73] = 0x35; //Keypad 5
-	scancode[0x74] = 0x36; //Keypad 6
-	scancode[0x75] = 0x38; //Keypad 8
-	scancode[0x76] = 0x1B; //ESC
-	scancode[0x77] = 0; //NUM LOCK
-	scancode[0x78] = 0; //F11
-	scancode[0x79] = 0x2B; //Keypad +
-	scancode[0x7A] = 0x33; //Keypad 3
-	scancode[0x7B] = 0x2D; //Keypad -
-	scancode[0x7C] = 0x2A; //Keypad *
-	scancode[0x7D] = 0x39; //Keypad 9
-	scancode[0x7E] = 0; //Scroll Lock
-	scancode[0x83] = 0; //F7
-	return;
+	/* Fetch the character */
+	keyboard_getchar();
+	/* Check the status port */
+	inb(STATUS_PORT);
+	/* Signal the interrupt is finished */
+	send_eoi(KEYBOARD_IRQ);
 }
 

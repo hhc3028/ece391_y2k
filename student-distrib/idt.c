@@ -23,6 +23,28 @@
 /* Linkage to the assembler wrapper for the interrupt handlers */
 extern uint32_t rtc_wrapper(void);
 extern uint32_t keyboard_wrapper(void);
+extern uint32_t	isr_wrapper(void);
+extern uint32_t	exception_divide_wrapper(void);
+extern uint32_t	exception_step_wrapper(void);
+extern uint32_t	exception_nmi_wrapper(void);
+extern uint32_t	exception_breakpoint_wrapper(void);
+extern uint32_t	exception_overflow_wrapper(void);
+extern uint32_t exception_bounds_check_wrapper(void);
+extern uint32_t	exception_undefined_op_wrapper(void);
+extern uint32_t	exception_missing_copro_wrapper(void);
+extern uint32_t	exception_doublefault_wrapper(void);
+extern uint32_t	exception_overrun_copro_wrapper(void);
+extern uint32_t	exception_TSS_wrapper(void);
+extern uint32_t	exception_segment_wrapper(void);
+extern uint32_t	exception_stack_wrapper(void);
+extern uint32_t	exception_GPF_wrapper(void);
+extern uint32_t	exception_page_wrapper(void);
+extern uint32_t	exception_interrupt_wrapper(void);
+extern uint32_t	exception_copro_err_wrapper(void);
+extern uint32_t	exception_alignment_wrapper(void);
+extern uint32_t	exception_machine_wrapper(void);
+extern uint32_t	exception_reserved_wrapper(void);
+extern uint32_t sys_call_handler(void);
 
 /* Constants */
 /* Constant for a present exception */
@@ -48,18 +70,10 @@ void isr_handler() {
 	//{*(uint8_t *)(video_mem + (i << 1) + 1) = 0xDF;}
 	printf("received interrut");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the divide by zero exception. */
 void exception_divide() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -67,18 +81,10 @@ void exception_divide() {
 	/* Print out the error message for the exception */
 	printf("Division by zero exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for a single step in debugger exception. */
 void exception_step() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -86,18 +92,10 @@ void exception_step() {
 	/* Print out the error message for the exception */
 	printf("Single step in debugger exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the non-maskable interrupt exception. */
 void exception_nmi() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -105,18 +103,10 @@ void exception_nmi() {
 	/* Print out the error message for the exception */
 	printf("Non-maskable interrupt exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the breakpoint in debugger exception. */
 void exception_breakpoint() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -124,18 +114,10 @@ void exception_breakpoint() {
 	/* Print out the error message for the exception */
 	printf("Breakpoint in debugger exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the overflow exception. */
 void exception_overflow() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -143,18 +125,10 @@ void exception_overflow() {
 	/* Print out the error message for the exception */
 	printf("Overflow exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the bounds check exception. */
 void exception_bounds_check() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -162,18 +136,10 @@ void exception_bounds_check() {
 	/* Print out the error message for the exception */
 	printf("Bounds check exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the undefined opcode exception. */
 void exception_undefined_op() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -181,18 +147,10 @@ void exception_undefined_op() {
 	/* Print out the error message for the exception */
 	printf("Undefined Operation Code exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the no coprocessor exception. */
 void exception_missing_copro() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -200,16 +158,10 @@ void exception_missing_copro() {
 	/* Print out the error message for the exception */
 	printf("No coprocessor exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the double fault exception. */
 void exception_doublefault() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -217,18 +169,10 @@ void exception_doublefault() {
 	/* Print out the error message for the exception */
 	printf("Double fault exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the coprocessor segment overrun exception. */
 void exception_overrun_copro() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -236,16 +180,10 @@ void exception_overrun_copro() {
 	/* Print out the error message for the exception */
 	printf("Coprocessor segment overrun exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the invalid task state segment exception. */
 void exception_TSS() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -253,16 +191,10 @@ void exception_TSS() {
 	/* Print out the error message for the exception */
 	printf("Invalid task state segment exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the segment not present exception. */
 void exception_segment() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	//clear();	
 	//for(i = 0; i < 4000; i++)
@@ -270,16 +202,10 @@ void exception_segment() {
 	/* Print out the error message for the exception */
 	printf("Segment not present exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the stack segment overrun exception. */
 void exception_stack() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -287,16 +213,10 @@ void exception_stack() {
 	/* Print out the error message for the exception */
 	printf("Stack segment overrun exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the general fault protection exception. */
 void exception_GPF() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -304,38 +224,30 @@ void exception_GPF() {
 	/* Print out the error message for the exception */
 	printf("General fault protection exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the page fault exception. */
 void exception_page() {
-	asm volatile("popl %edx");
-	asm volatile("movl %cr2, %eax");
-	asm volatile(".1: hlt; jmp .1;");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
+	int32_t error;
+	asm volatile (
+		"movl %%eax, %0"
+            : "=g" (error)
+            : /* no inputs */
+            : "eax"
+    );
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
 	//{*(uint8_t *)(video_mem + (i << 1) + 1) = 0xDF;}
 	/* Print out the error message for the exception */
 	printf("Page fault exception occured.\n");
+	printf("%x exception occurred\n", error);
 	while(1);
 
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the unknwon interrupt exception. */
 void exception_interrupt() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -343,18 +255,10 @@ void exception_interrupt() {
 	/* Print out the error message for the exception */
 	printf("Unknown interrupt exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the coprocessor error exception. */
 void exception_copro_err() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -362,18 +266,10 @@ void exception_copro_err() {
 	/* Print out the error message for the exception */
 	printf("Coprocessor error exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the alignment check exception. */
 void exception_alignment() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -381,18 +277,10 @@ void exception_alignment() {
 	/* Print out the error message for the exception */
 	printf("Alignment check exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for the machine check exception. */
 void exception_machine() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -400,18 +288,10 @@ void exception_machine() {
 	/* Print out the error message for the exception */
 	printf("Machine check exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /* Handler for a reserved exception. */
 void exception_reserved() {
-	/* Push a dummy error code */
-	asm volatile("pushl $0");
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
@@ -419,26 +299,6 @@ void exception_reserved() {
 	/* Print out the error message for the exception */
 	printf("Reserved exception occured.\n");
 	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
-}
-
-/* Handler for system calls. */
-void system_call() {
-	/* Preserve the previous state of the system */
-	asm volatile("pushal");
-
-	/* Clear the screen. */
-	clear();	
-	//for(i = 0; i < 4000; i++)
-	//{*(uint8_t *)(video_mem + (i << 1) + 1) = 0xDF;}
-	/* Print out the system call that occurred */
-	printf("System call occured.\n");
-	while(1);
-
-	/* Restore the previous state of the system */
-	asm volatile("popal");
 }
 
 /**
@@ -457,35 +317,35 @@ void init_idt() {
 	/* Variable for iterating through the idt */
 	int i = 0;
 	/* Initialize Intel defined exceptions */
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_divide, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_step, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_nmi, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_breakpoint, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_overflow, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_bounds_check, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_undefined_op, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_missing_copro, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_doublefault, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_overrun_copro, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_TSS, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_segment, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_stack, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_GPF, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_page, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_interrupt, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_copro_err, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_alignment, KERNEL_CS, PRES_EXCEPT);
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_machine, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_divide_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_step_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_nmi_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_breakpoint_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_overflow_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_bounds_check_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_undefined_op_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_missing_copro_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_doublefault_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_overrun_copro_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_TSS_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_segment_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_stack_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_GPF_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_page_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_interrupt_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_copro_err_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_alignment_wrapper, KERNEL_CS, PRES_EXCEPT);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_machine_wrapper, KERNEL_CS, PRES_EXCEPT);
 	/* Initialize the next reserved idt descriptors which occupies 0x13 to 0x1F of the IDT */
 	for(; i < 0x20; i++) {
-		IDT_ENTRY_SETUP(&idt[i], (uint32_t)exception_reserved, KERNEL_CS, RESERVED);
+		IDT_ENTRY_SETUP(&idt[i], (uint32_t)exception_reserved_wrapper, KERNEL_CS, RESERVED);
 	}
 	/* Initialize the next idt descriptors to be generic non-present interrupts up to 0x80 */
 	for(; i < 0x80; i++) {
-		IDT_ENTRY_SETUP(&idt[i], (uint32_t)isr_handler, KERNEL_CS, GENERIC);
+		IDT_ENTRY_SETUP(&idt[i], (uint32_t)isr_wrapper, KERNEL_CS, GENERIC);
 	}
 	/* IDT entry for system calls */
-	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)system_call, KERNEL_CS, SYS_CALL);
+	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)sys_call_handler, KERNEL_CS, SYS_CALL);
 	/* Initialize the rest of the idt descriptors to be generic non-present interrupts up to 0xFF */
 	for(; i < 0xFF; i++) {
 		IDT_ENTRY_SETUP(&idt[i], (uint32_t)isr_handler, KERNEL_CS, GENERIC);

@@ -173,6 +173,10 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
+
+	int32_t * temp = NULL;
+	int32_t test = *temp;
+
 	/*while(1) {
 		asm volatile("int $0x28");
 	}*/
