@@ -24,6 +24,9 @@
 void
 entry (unsigned long magic, unsigned long addr)
 {
+	/* Initialize the idt */
+	init_idt();
+
 	multiboot_info_t *mbi;
 
 	/* Clear the screen. */
@@ -156,14 +159,15 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
-	init_idt();
-	initialize_paging();
+	//initialize_paging();
 
 	/* initialize the RTC to 2Hz */
 	rtc_initialize();
+	int32_t * freq;
+	
 	
 	/* initialize keyboard */
-	//keyboard_main();
+	initialize_keyboard();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -171,6 +175,34 @@ entry (unsigned long magic, unsigned long addr)
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
+
+
+
+	// testing for changing RTC freq
+	/*
+	int32_t temp = 2;
+	freq = &temp;
+	rtc_write(freq, 4);
+	int i;
+	for(i = 0; i < 10; i ++) {
+		rtc_read();
+		printf("testing");
+	}
+
+	temp = 256;
+	rtc_write(freq, 4);
+
+	for (i = 0; i < 20; i++) {
+		rtc_read();
+		printf("\n");
+		printf("second_test");		
+	}
+	*/
+
+
+
+
+
 	/*while(1) {
 		asm volatile("int $0x28");
 	}*/
