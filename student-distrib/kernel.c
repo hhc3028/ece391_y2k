@@ -22,6 +22,7 @@
 
 uint32_t starting_address;
 
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
@@ -65,9 +66,9 @@ entry (unsigned long magic, unsigned long addr)
 		int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
-		
+
 		starting_address = mod->mod_start;
-		
+
 		while(mod_count < mbi->mods_count) {
 			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -165,14 +166,13 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
-	initialize_paging();
+	//initialize_paging();
 
 	/* initialize the RTC to 2Hz */
-	rtc_initialize();
+	rtc_initialize();	
 	
 	/* initialize keyboard */
 	initialize_keyboard();
-
 	
 	/* TESTING FILE SYSTEMS */
 	init_file_systems(starting_address);
@@ -181,13 +181,42 @@ entry (unsigned long magic, unsigned long addr)
 	printf("Done testing\n");
 	/* FINISH FILE SYSTEMS TESTING */
 
-	
+
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
 	printf("Enabling Interrupts\n");
 	sti();
+
+
+
+	// testing for changing RTC freq
+	/*
+	int32_t * freq;
+	int32_t temp = 2;
+	freq = &temp;
+	rtc_write(freq, 4);
+	int i;
+	for(i = 0; i < 10; i ++) {
+		rtc_read();
+		printf("testing");
+	}
+
+	temp = 256;
+	rtc_write(freq, 4);
+
+	for (i = 0; i < 20; i++) {
+		rtc_read();
+		printf("\n");
+		printf("second_test");		
+	}
+	*/
+
+
+
+
+
 	/*while(1) {
 		asm volatile("int $0x28");
 	}*/
@@ -198,3 +227,4 @@ entry (unsigned long magic, unsigned long addr)
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
+
