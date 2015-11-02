@@ -25,10 +25,10 @@ void init_file_systems(uint32_t address)
 	boot_block_addr = address;
 	
 	/* Set the starting address for where the index nodes start */	
-	index_node = (inodes_t*)(boot_block_addr + 0x1000);
+	index_node = (inodes_t*)(boot_block_addr + FOUR_KB_SIZE);
 	
 	/* Set the starting address for where the dir. entries */
-	dir_entries = (dentries_t*)(boot_block_addr + 64);
+	dir_entries = (dentries_t*)(boot_block_addr + NUM_OF_DENTRY + INCR_ONE);
 	
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
@@ -36,7 +36,7 @@ void init_file_systems(uint32_t address)
 	total_index_nodes = bootBlock->num_inodes;
 	
 	/* Set the starting address of the data blocks */
-	data_blocks = (data_block_t*)(boot_block_addr) + (total_index_nodes + 1);
+	data_blocks = (data_block_t*)(boot_block_addr) + (total_index_nodes + INCR_ONE);
 
 	/* Initialize the dirct entry read counter */
 	dir_counter = 0;
@@ -74,18 +74,18 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 		{
 			/* Copy the dir entry at index to the curr_dentry variable */
 			int bullshit = read_dentry_by_index(i, &curr_dentry);
-			if(bullshit == -1)						// if bullshit is -1
+			if(bullshit == FAIL)						// if bullshit is -1
 			{
-				return -1;							// the copy by index failed
+				return FAIL;							// the copy by index failed
 			}
 
 			/* Call the function from Lib.c to compare the names, 0 for match */
 			int is_same = strncmp((int8_t*)fname, (int8_t*)curr_dentry.file_name, NAME_SIZE);
 			
-			if(is_same == 0)						// if the names match
+			if(is_same == SUCCESS)						// if the names match
 			{
 				*dentry = curr_dentry;				// copy the curr_dentry to the dentry passed into function
-				return 0;							// return success (0)
+				return SUCCESS;							// return success (0)
 			}
 		}		
 	}
@@ -112,7 +112,7 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 	/* Check to see if the index is valid */
 	if(total_dir_entries <= index)		// is the index bigger than total amount fo dentries
 	{
-		return -1;						// if yes, then return fail (-1)
+		return FAIL;						// if yes, then return fail (-1)
 	}
 
 	/* Copy the dentry at index to the dentry passed as parameter */
@@ -120,7 +120,7 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 	dentry->file_type = dir_entries[index].file_type;
 	dentry->inode_num = dir_entries[index].inode_num;
 
-	return 0;							// return 0 on success of copying
+	return SUCCESS;							// return 0 on success of copying
 }
 
 /*
@@ -145,18 +145,16 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	inodes_t * curr_inode = &index_node[inode];
 	uint32_t file_length = curr_inode->length_B;	// store the length of file into variable
 
-	printf(" Total Size of File: %u\n", file_length);
-
 	/* Check if the file length is valid */
-	if(file_length > 1023 * 4096)					// if the file length isn't within range
+	if(file_length > PAGE_SIZE * FOUR_KB_SIZE)					// if the file length isn't within range
 	{
-		return -1;									// return failure (-1)
+		return FAIL;									// return failure (-1)
 	}
 
 	/* Check if the starting point is out of range */
 	if(file_length <= offset)						// if the offset starts beyond the file length
 	{
-		return 0;									// return success and dont include anything into the buffer
+		return SUCCESS;									// return success and dont include anything into the buffer
 	}
 
 	/* Fix the length if it goes over the actual File length */
@@ -167,25 +165,26 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	}
 
 
-	uint32_t start_index = offset / 4096;
+	uint32_t start_index = offset / FOUR_KB_SIZE;
 	uint32_t buffer_index = 0;
 	data_block_t * cur_dblock = data_blocks + curr_inode->dblock[start_index];
 
 	uint32_t i;													// variable to keep track of which dblock we are on
 	for(i = offset; i < length + offset; i++) 
 	{
-		if((i / 4096) > start_index) 
+		if((i / FOUR_KB_SIZE) > start_index) 
 		{
 			start_index++;
 			cur_dblock = data_blocks + curr_inode->dblock[start_index];
 		}
-		buf[buffer_index] = cur_dblock->data_nodes[i % 4096];
-		printf("%c", buf[buffer_index]);						// uncomment to print everything in file
+		buf[buffer_index] = cur_dblock->data_nodes[i % FOUR_KB_SIZE];
+		//printf("%c", buf[buffer_index]);						// uncomment to print everything in file
 		buffer_index++;
 	}
 	
 	printf("\n");
 	printf("Length Read: %d\n", length);
+	printf("Total Size of File: %u\n", file_length);
 	return length;
 }
 
@@ -204,8 +203,8 @@ void test_file_systems(const uint8_t* fname)
 	uint32_t index;
 	dentries_t test_dentry;			// dentry variable to help with testing
 
-	uint8_t testing_buffer[6000];	// buffer used for testing
-	for(index = 0; index < 6000; index ++)
+	uint8_t testing_buffer[BIG_BUF_SIZE];	// buffer used for testing
+	for(index = 0; index < BIG_BUF_SIZE; index ++)
 	{
 		testing_buffer[index] = NULL;
 	}
@@ -220,7 +219,7 @@ void test_file_systems(const uint8_t* fname)
 	/* Testing Read by Index */
 	/*for(index = 0; index < bootBlock->num_dentries; index ++)
 	{
-		if(read_dentry_by_index(index, &test_dentry) == 0)
+		if(read_dentry_by_index(index, &test_dentry) == SUCCESS)
 		{
 			printf("File Name: %s ", test_dentry.file_name);
 			printf("File Type: %u ", test_dentry.file_type);
@@ -247,7 +246,7 @@ void test_file_systems(const uint8_t* fname)
 		printf("Read by Name: SUCCESS\n");
 		printf("File Name: %s ", test_dentry.file_name);
 		printf("File Type: %u ", test_dentry.file_type);
-		printf("Inode Number: %u", test_dentry.inode_num);
+		printf("Inode Number: %u\n", test_dentry.inode_num);
 		printf("\n");
 	}
 	else
@@ -300,12 +299,12 @@ int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t 
 	else
 	{
 		/* If the File is a regular file, call read data */
-		if(test_dentry.file_type == 2)
+		if(test_dentry.file_type == TYPE_REGULAR)
 		{
 			return read_data(test_dentry.inode_num, offset, buf, length);
 		}
 		/* If the file is a directory */
-		else if(test_dentry.file_type == 1)
+		else if(test_dentry.file_type == TYPE_DIR)
 		{
 			return read_dir(buf);
 		}
