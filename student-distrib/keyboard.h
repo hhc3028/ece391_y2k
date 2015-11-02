@@ -13,12 +13,13 @@
 #define KEYBOARD_IRQ 0x01
 
 unsigned char buf[128];
-uint8_t i;
+int i;
 
 void initialize_keyboard(void);
 void keyboard_getchar(void);
 unsigned char getchar(void);
 unsigned char getScancode(void);
 void keyboard_int_handler(void);
-
+int32_t terminal_read(unsigned char * buffer, int32_t nbytes);
+int32_t terminal_write(unsigned char *buffer, int32_t nbytes);
 #endif /* _KEYBOARD_H*/

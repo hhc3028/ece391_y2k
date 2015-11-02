@@ -10,11 +10,15 @@
 #define R_SHFT_REL 0xB6
 #define L_SHFT_REL 0xAA
 #define BACKSPACE 0x0E
+#define ENTER 
 
 static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
-static char buf[128] = '\0';
+static char buffer[128] = '\0';
+static int curr_xcoord = 0;
+static int curr_ycoord = 0;
+static int allow_read = 0;
 
 /* Array for the characters without shift or CAPS */
 unsigned char scancode[4][90] =
@@ -22,7 +26,7 @@ unsigned char scancode[4][90] =
 	{	//no special key
 	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
-	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
 	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -30,7 +34,7 @@ unsigned char scancode[4][90] =
 	{	//for shift keys
 	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', //14
 	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
-	0, 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', //14
+	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', //14
 	0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', //14
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -38,7 +42,7 @@ unsigned char scancode[4][90] =
 	{	//for caplocks
 	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
-	0, 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`', //14
+	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`', //14
 	0, '\\', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', //14
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	
@@ -46,7 +50,7 @@ unsigned char scancode[4][90] =
 	{	//for caplock + shift
 	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
 	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '{', '}',
-	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"', '~',
+	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"', '~',
 	0, '|', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '<', '>', '?', 0, '*',
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -65,6 +69,47 @@ void initialize_keyboard() {
 	/* Enable the irq of the PIC for the keyboard */
 	enable_irq(KEYBOARD_IRQ);
 	i = 0;
+	cursor_pos = 0;
+	flag = 0;
+	c_flag = 0;
+	ctrl_flag = 0;
+	buffer = '\0';
+	buf = '\0';
+}
+
+int32_t terminal_read(unsigned char * buf, int32_t nbytes)
+{
+	int j;
+	while(!allow_read)
+
+	if(screen_y >23)
+	{
+		handle_max_buffer();
+	}
+	else
+	{
+		putc('\n');
+	}
+	for(j = 0; j < nbytes; j++)
+	{
+		buf[j] = buffer[j];
+		buffer[j] = '\0';
+	}
+
+	i = 0;
+	allow_read = 0;
+	screen_x = 0;
+	return j;
+}
+
+int32_t terminal_write(unsigned char * buf, int32_t nbytes)
+{
+	int count;
+	for(count = 0; count < nbytes; count++)
+	{
+		putc(buf[count]);
+	}
+	return count;
 }
 
 /**
@@ -97,6 +142,11 @@ void keyboard_getchar()
 	//need to map it and interpret it
 	//then have it so it can output it
 	unsigned char out = 0;
+	if(i == 0)
+	{
+		curr_ycoord = screen_y;
+		curr_xcoord = screen_x;
+	}
 	char s_code = getScancode();
 	switch (s_code)
 	{
@@ -146,23 +196,50 @@ void keyboard_getchar()
 		if(ctrl_flag == 1)
 		{
 			s_code = 0x01; //clear the L scan value so it won't print
+			clear();
+			screen_x = 0;
+			screen_y = 0;
 		}
 			//clear screen
 		break;
 	case(BACKSPACE):
 		if(i > 0)
 		{
-			buf[i] = '\0';
+			buffer[i-1] = '\0';
 			i--;
 		}
+		break;
+	case(ENTER):
+		//do the enter implementation here
+		//it will need to output bufferfer and clear it after
+		allow_read = 1;
+		break;
+	default:
 		break;
 	}
 	out = scancode[flag][s_code];
 	if((out != 0) && (i < 128))
 	{
-		buf[i] = out;
-		putc(buf[i]);
+		buffer[i] = out;
 		i++;
+	}
+	screen_x = curr_xcoord;
+	screen_y = curr_ycoord;
+	for(j = 0; j < i; j++)
+	{
+		if(screen_x >= NUM_COLS)
+		{
+			if(screen_y < (NUM_ROWS - 1))
+			{
+				screen_y++;
+				screen_x = 0;
+			}
+			else
+			{
+				handle_max_buffer();
+			}
+		}
+		putc(buffer[j]);
 	}
 
 }
@@ -176,4 +253,33 @@ void keyboard_int_handler()
 	inb(STATUS_PORT);
 	/* Signal the interrupt is finished */
 	send_eoi(KEYBOARD_IRQ);
+}
+
+int32_t terminal_close();
+{
+	return 0;
+}
+
+
+void handle_max_buffer()
+{
+	for(screen_y = 0; screen_y < NUM_ROWS; screen_y++)
+	{
+		for(screen_x = 0; screen_x < NUM_COLS; screen_x++)
+		{
+			if(screen_y != (NUM_ROWS - 1))
+			{
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+			}
+			else if(screen_y == (NUM_ROWS - 1))
+			{
+				*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		    }
+		}
+	}
+
+	screen_y = NUM_ROWS - 1;
+	screen_x = 0;
 }
