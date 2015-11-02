@@ -9,9 +9,15 @@
 #define DATA_PORT		0x71
 
 // the three status registers
-#define STATUS_A		0x0A
-#define STATUS_B		0x0B
-#define STATUS_C		0x0C
+#define STATUS_A		0x8A
+#define STATUS_B		0x8B
+#define STATUS_C		0x8C
+
+// the IRQ port for the RTC
+#define RTC_IRQ			0x08
+
+// the frequency to use for the RTC
+#define FREQ			1024
 
 // function to intialize RTC and set freq to 2Hz
 uint32_t rtc_initialize();

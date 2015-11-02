@@ -2,60 +2,284 @@
 #include "lib.h"
 #include "i8259.h"
 
-unsigned char scancode[128] =
+#define RIGHT_SHFT 0x36
+#define LEFT_SHFT 0x2A
+#define CAPS 0x3A
+#define CTRL 0x1D
+#define CTRL_REL 0x9D
+#define R_SHFT_REL 0xB6
+#define L_SHFT_REL 0xAA
+#define BACKSPACE 0x0E
+#define ENTER 
+
+static int c_flag = 0;
+static int flag = 0;
+static int ctrl_flag = 0;
+static char buffer[128] = '\0';
+static int curr_xcoord = 0;
+static int curr_ycoord = 0;
+static int allow_read = 0;
+
+/* Array for the characters without shift or CAPS */
+unsigned char scancode[4][90] =
 {
+	{	//no special key
 	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
-	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
 	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	},
+	{	//for shift keys
+	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', //14
+	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
+	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', //14
+	0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', //14
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	},
+	{	//for caplocks
+	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
+	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
+	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`', //14
+	0, '\\', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', //14
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	
+	},
+	{	//for caplock + shift
+	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
+	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '{', '}',
+	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"', '~',
+	0, '|', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '<', '>', '?', 0, '*',
+	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
+	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	}
 };
 
+/**
+ *	Description: initialize_keyboard: enables the PIC to allow keyboard
+ *				 interrupts
+ *	Inputs: str: None
+ *	Outputs: None
+ *	Return: None
+ *	Side Effects: Changes the irq mask to include the keyboard
+ */
+void initialize_keyboard() {
+	/* Enable the irq of the PIC for the keyboard */
+	enable_irq(KEYBOARD_IRQ);
+	i = 0;
+	cursor_pos = 0;
+	flag = 0;
+	c_flag = 0;
+	ctrl_flag = 0;
+	buffer = '\0';
+	buf = '\0';
+}
+
+int32_t terminal_read(unsigned char * buf, int32_t nbytes)
+{
+	int j;
+	while(!allow_read)
+
+	if(screen_y >23)
+	{
+		handle_max_buffer();
+	}
+	else
+	{
+		putc('\n');
+	}
+	for(j = 0; j < nbytes; j++)
+	{
+		buf[j] = buffer[j];
+		buffer[j] = '\0';
+	}
+
+	i = 0;
+	allow_read = 0;
+	screen_x = 0;
+	return j;
+}
+
+int32_t terminal_write(unsigned char * buf, int32_t nbytes)
+{
+	int count;
+	for(count = 0; count < nbytes; count++)
+	{
+		putc(buf[count]);
+	}
+	return count;
+}
+
+/**
+ *	Description: getScancode: retrieves the key that was pressed 
+ *	Inputs: None
+ *	Outputs: None
+ *	Return: Return the key that was pressed
+ *	Side Effects: Reads a byte from port 0x60 or the Keyboard port
+ */
 unsigned char getScancode() //from OSDev
 {
-	unsigned char c=0;
-	do {
-		if(inb(KEY_PORT)!=c)
-		{
-			c=inb(KEY_PORT);
-			if((c > 0) && (c < 0x58))	
-				return c;
-			else if(c >= 0x58)
-				return 0;
-		}
-	}while(1);
+	unsigned char c = inb(KEY_PORT);
+	if((c > 0) && (c < 0x58) || (c == R_SHFT_REL) || (c == L_SHFT_REL) || (c == CTRL_REL))
+		return c;
+	else
+		return 0;
 }
 
-unsigned char getchar() //from OSDev
-{
-	return scancode[getScancode()]; // Need to initialize this array with the codes
-}
-
-// It will read keys from the keyboard
-// Translate it to the mapping that will be put in here
+/**
+ *	Description: keyboard_getchar : retrieves a typed character from
+ *				 the keyboard and echos it onto the screen 
+ *	Inputs: None
+ *	Outputs: None
+ *	Return: None
+ *	Side Effects: Echos a typed character onto the screen
+ */
 void keyboard_getchar()
 {
 	//code for the key inputs here.
 	//need to map it and interpret it
 	//then have it so it can output it
 	unsigned char out = 0;
-	out = getchar();
-	if(out != 0)
+	if(i == 0)
 	{
-		putc(out);
+		curr_ycoord = screen_y;
+		curr_xcoord = screen_x;
+	}
+	char s_code = getScancode();
+	switch (s_code)
+	{
+	case(RIGHT_SHFT || LEFT_SHFT):
+		if(flag == 2)
+			flag = 3;
+		else
+			flag = 1;
+		break;
+	case(R_SHFT_REL):
+		if(flag == 3)
+			flag = 2;
+		else 
+			flag = 0;
+		break;
+	case(L_SHFT_REL):
+		if(flag == 3)
+			flag = 2;
+		else 
+			flag = 0;
+		break;
+	case(CAPS):
+		if(c_flag == 0)
+		{
+			if(flag == 1)
+				flag = 3;
+			else
+				flag = 2;
+			c_flag = 1;
+		}
+		else
+		{
+			if(flag == 3)
+				flag = 1;
+			else 
+				flag = 0;
+			c_flag = 0;
+		}
+		break;
+	case(CTRL):
+		ctrl_flag = 1;
+		break;
+	case(CTRL_REL):
+		ctrl_flag = 0;
+		break;
+	case(0x28): // 0x28 is scan value of L
+		if(ctrl_flag == 1)
+		{
+			s_code = 0x01; //clear the L scan value so it won't print
+			clear();
+			screen_x = 0;
+			screen_y = 0;
+		}
+			//clear screen
+		break;
+	case(BACKSPACE):
+		if(i > 0)
+		{
+			buffer[i-1] = '\0';
+			i--;
+		}
+		break;
+	case(ENTER):
+		//do the enter implementation here
+		//it will need to output bufferfer and clear it after
+		allow_read = 1;
+		break;
+	default:
+		break;
+	}
+	out = scancode[flag][s_code];
+	if((out != 0) && (i < 128))
+	{
+		buffer[i] = out;
+		i++;
+	}
+	screen_x = curr_xcoord;
+	screen_y = curr_ycoord;
+	for(j = 0; j < i; j++)
+	{
+		if(screen_x >= NUM_COLS)
+		{
+			if(screen_y < (NUM_ROWS - 1))
+			{
+				screen_y++;
+				screen_x = 0;
+			}
+			else
+			{
+				handle_max_buffer();
+			}
+		}
+		putc(buffer[j]);
 	}
 
 }
 
+/* Interrupt handler for the keyboard */
 void keyboard_int_handler()
 {
-	asm volatile ("pushal");
-
+	/* Fetch the character */
 	keyboard_getchar();
-	
-	send_eoi(1);
-
-	asm volatile ("popal");
+	/* Check the status port */
+	inb(STATUS_PORT);
+	/* Signal the interrupt is finished */
+	send_eoi(KEYBOARD_IRQ);
 }
 
+int32_t terminal_close();
+{
+	return 0;
+}
+
+
+void handle_max_buffer()
+{
+	for(screen_y = 0; screen_y < NUM_ROWS; screen_y++)
+	{
+		for(screen_x = 0; screen_x < NUM_COLS; screen_x++)
+		{
+			if(screen_y != (NUM_ROWS - 1))
+			{
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+			}
+			else if(screen_y == (NUM_ROWS - 1))
+			{
+				*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		    }
+		}
+	}
+
+	screen_y = NUM_ROWS - 1;
+	screen_x = 0;
+}

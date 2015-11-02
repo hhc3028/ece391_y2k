@@ -159,7 +159,11 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
+<<<<<<< HEAD
 	//initialize_paging();
+=======
+	initialize_paging();
+>>>>>>> master
 
 	/* initialize the RTC to 2Hz */
 	rtc_initialize();
