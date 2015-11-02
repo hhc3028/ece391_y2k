@@ -34,10 +34,9 @@ void init_file_systems(uint32_t address)
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	int total_index_nodes;
 	total_index_nodes = bootBlock->num_inodes;
-	total_index_nodes += 1;
 	
 	/* Set the starting address of the data blocks */
-	data_blocks = (data_block_t*)(boot_block_addr + (total_index_nodes * 64));
+	data_blocks = (data_block_t*)(boot_block_addr) + (total_index_nodes + 1);
 
 	/* Initialize the dirct entry read counter */
 	dir_counter = 0;
@@ -137,10 +136,16 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
-	dentries_t * curr_dentry;							// holds the ptr to inode
-	read_dentry_by_index(inode, curr_dentry);
-	inodes_t * curr_inode = &index_node[curr_dentry->inode_num];
+	/*dentries_t curr_dentry;							// holds the ptr to inode
+	if(read_dentry_by_index(inode, &curr_dentry) == -1)
+	{
+		return -1;
+	}*/
+
+	inodes_t * curr_inode = &index_node[inode];
 	uint32_t file_length = curr_inode->length_B;	// store the length of file into variable
+
+	printf("Total Size of File: %u\n", file_length);
 
 	/* Check if the file length is valid */
 	if(file_length > 1023 * 4096)					// if the file length isn't within range
@@ -167,17 +172,20 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	data_block_t * cur_dblock = data_blocks + curr_inode->dblock[start_index];
 
 	uint32_t i;													// variable to keep track of which dblock we are on
-	for(i = offset; i < length + offset; i++) {
-		if((i / 4096) > start_index) {
+	for(i = offset; i < length + offset; i++) 
+	{
+		if((i / 4096) > start_index) 
+		{
 			start_index++;
 			cur_dblock = data_blocks + curr_inode->dblock[start_index];
 		}
 		buf[buffer_index] = cur_dblock->data_nodes[i % 4096];
+		printf("%c", buf[buffer_index]);						// uncomment to print everything in file
 		buffer_index++;
 	}
-
-	return length;
+	
 	printf("Length Read: %d\n", length);
+	return length;
 }
 
 /*
@@ -189,19 +197,20 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 *	RETURN VALUE:	Various printf statments depending on the function being tested
 *	SIDE EFFECT:	None
 */
-void test_file_systems(void)
+void test_file_systems(const uint8_t* fname)
 {
+	clear();						// clears the screen on the terminal
+	uint32_t index;
+	dentries_t test_dentry;			// dentry variable to help with testing
+
 	/* Testing Init File System Pointers and Struct */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	printf("Number of Dentries: %d\n", bootBlock->num_dentries);
 	printf("Number of INodes: %d\n", bootBlock->num_inodes);
 	printf("Number of Data Blocks: %d\n", bootBlock->num_dataBlocks);
-
-	
-	dentries_t test_dentry;			// dentry variable to help with testing
+	printf("%s\n", );
 
 	/* Testing Read by Index */
-	uint32_t index;
 	for(index = 0; index < bootBlock->num_dentries; index ++)
 	{
 		if(read_dentry_by_index(index, &test_dentry) == 0)
@@ -216,9 +225,21 @@ void test_file_systems(void)
 			printf("Read by Index Failed :(\n");
 		}
 	}
+
+	/* Testing LS Functionality */
+	uint8_t testing_buffer[6000];
+	for(index = 0; index < 6000; index ++)
+	{
+		testing_buffer[index] = NULL;
+	}
+	for(index = 0; index < bootBlock->num_dentries; index ++)
+	{
+		read_dir(testing_buffer);
+	}
+	
 	
 	/* Testing Read by Name */
-	if(read_dentry_by_name((uint8_t*)"frame0.txt", &test_dentry) == 0)
+	if(read_dentry_by_name(fname, &test_dentry) == 0)
 	{
 		printf("Read by Name: SUCCESS\n");
 		printf("File Name: %s ", test_dentry.file_name);
@@ -233,7 +254,12 @@ void test_file_systems(void)
 
 	/* Testing Read Data */
 	uint8_t testing_buffer[6000];
-	if(read_data(test_dentry.inode_num, 0, testing_buffer, 50) > 0)
+	for(index = 0; index < 6000; index ++)
+	{
+		testing_buffer[index] = NULL;
+	}
+
+	if(read_data(test_dentry.inode_num, 0, testing_buffer, 100) > 0)
 	{
 		printf("Read Data: SUCCESS\n");
 	}
@@ -241,6 +267,7 @@ void test_file_systems(void)
 	{
 		printf("Read Data: FAIL\n");
 	}
+	
 }
 
 
@@ -325,6 +352,7 @@ int32_t read_dir(uint8_t* buf)
 	}	
 
 	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
+	printf("File Name: %s\n", dir_entries[dir_counter].file_name);
 	dir_counter = dir_counter + 1;				// increment the num of directories read
 
 	uint32_t length_read = strlen((const int8_t*) buf);

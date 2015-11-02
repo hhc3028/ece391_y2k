@@ -173,13 +173,15 @@ entry (unsigned long magic, unsigned long addr)
 	/* initialize keyboard */
 	initialize_keyboard();
 
+	
 	/* TESTING FILE SYSTEMS */
 	init_file_systems(starting_address);
-	printf("Init File Systems done\n");
-	test_file_systems();
+	printf("Init File Systems Done\n");
+	test_file_systems((uint8_t*)"frame0.txt");
 	printf("Done testing\n");
-	
+	/* FINISH FILE SYSTEMS TESTING */
 
+	
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
