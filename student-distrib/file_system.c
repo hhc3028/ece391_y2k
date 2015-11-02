@@ -34,10 +34,9 @@ void init_file_systems(uint32_t address)
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	int total_index_nodes;
 	total_index_nodes = bootBlock->num_inodes;
-	total_index_nodes += 1;
 	
 	/* Set the starting address of the data blocks */
-	data_blocks = (data_block_t*)(boot_block_addr + (total_index_nodes * 64));
+	data_blocks = (data_block_t*)(boot_block_addr) + (total_index_nodes + 1);
 
 	/* Initialize the dirct entry read counter */
 	dir_counter = 0;
@@ -137,11 +136,19 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
-	inodes_t* curr_inode = (inodes_t*) inode;		// holds the ptr to inode
+	/*dentries_t curr_dentry;							// holds the ptr to inode
+	if(read_dentry_by_index(inode, &curr_dentry) == -1)
+	{
+		return -1;
+	}*/
+
+	inodes_t * curr_inode = &index_node[inode];
 	uint32_t file_length = curr_inode->length_B;	// store the length of file into variable
 
+	printf(" Total Size of File: %u\n", file_length);
+
 	/* Check if the file length is valid */
-	if(file_length / 4096 > 1023)					// if the file length isn't within range
+	if(file_length > 1023 * 4096)					// if the file length isn't within range
 	{
 		return -1;									// return failure (-1)
 	}
@@ -159,51 +166,26 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		length = length_to_read;								// length is changed to the amount to actually read
 	}
 
-	
-	uint32_t end_index = file_length / 4096;					// get where to end in inode dblock
-	uint32_t start_index = offset / 4096;						// get where the index to start in inode dblock
 
-	uint32_t start_dblock = offset - (start_index * 4096);		// get the amount of bytes in the starting dblock
-	uint32_t end_dblock = file_length - (end_index * 4096);		// get the amount of bytes in the last dblock
-
-	uint32_t buffer_index = 0;									// index to keep track of position on the buffer
+	uint32_t start_index = offset / 4096;
+	uint32_t buffer_index = 0;
+	data_block_t * cur_dblock = data_blocks + curr_inode->dblock[start_index];
 
 	uint32_t i;													// variable to keep track of which dblock we are on
-	for(i = start_index; i <= end_index; i ++)
+	for(i = offset; i < length + offset; i++) 
 	{
-		uint32_t dblock_num = curr_inode->dblock[i];			// get the data block number
-
-		data_block_t* dblock_addr = data_blocks + (sizeof(data_block_t) * dblock_num);	// get to the data block we need
-
-		if(i == start_index)									// if we are at the starting dblock
+		if((i / 4096) > start_index) 
 		{
-			uint32_t x;
-			for(x = start_dblock; x < 4096; x ++)				// copy over for the first dblock
-			{
-				buf[buffer_index] = dblock_addr->data_nodes[x];
-				buffer_index += 1;								// incrememnt the buffer index
-			}
+			start_index++;
+			cur_dblock = data_blocks + curr_inode->dblock[start_index];
 		}
-		else if(i == end_index)									// if we are at the last dblock
-		{
-			uint32_t x;
-			for(x = 0; x < end_dblock; x ++)
-			{
-				buf[buffer_index] = dblock_addr->data_nodes[x];
-				buffer_index += 1;
-			}
-		}
-		else													// if we are working with a dblock in the middle
-		{
-			uint32_t x;
-			for(x = 0; x < 4096; x ++)							// copy over for dblock in the middle
-			{
-				buf[buffer_index] = dblock_addr->data_nodes[x];
-				buffer_index += 1;								// increment the buffer index
-			}
-		}
+		buf[buffer_index] = cur_dblock->data_nodes[i % 4096];
+		printf("%c", buf[buffer_index]);						// uncomment to print everything in file
+		buffer_index++;
 	}
-
+	
+	printf("\n");
+	printf("Length Read: %d\n", length);
 	return length;
 }
 
@@ -216,12 +198,73 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 *	RETURN VALUE:	Various printf statments depending on the function being tested
 *	SIDE EFFECT:	None
 */
-void test_file_systems(void)
+void test_file_systems(const uint8_t* fname)
 {
+	clear();						// clears the screen on the terminal
+	uint32_t index;
 	dentries_t test_dentry;			// dentry variable to help with testing
 
-	int32_t success_fail = read_dentry_by_name((uint8_t*)"frame0.txt", &test_dentry);
-	printf("%d\n", success_fail);
+	uint8_t testing_buffer[6000];	// buffer used for testing
+	for(index = 0; index < 6000; index ++)
+	{
+		testing_buffer[index] = NULL;
+	}
+
+	/* Testing Init File System Pointers and Struct */
+	//boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
+	/*printf("Number of Dentries: %d\n", bootBlock->num_dentries);
+	printf("Number of INodes: %d\n", bootBlock->num_inodes);
+	printf("Number of Data Blocks: %d\n", bootBlock->num_dataBlocks);
+	printf("Set up: DONE\n");*/
+
+	/* Testing Read by Index */
+	/*for(index = 0; index < bootBlock->num_dentries; index ++)
+	{
+		if(read_dentry_by_index(index, &test_dentry) == 0)
+		{
+			printf("File Name: %s ", test_dentry.file_name);
+			printf("File Type: %u ", test_dentry.file_type);
+			printf("Inode Number: %u", test_dentry.inode_num);
+			printf("\n");
+		}
+		else
+		{
+			printf("Read by Index Failed :(\n");
+		}
+	}
+	printf("Read by Index: SUCCESS\n");*/
+
+	/* Testing LS Functionality */
+	/*for(index = 0; index < bootBlock->num_dentries; index ++)
+	{
+		read_dir(testing_buffer);
+	}*/
+	
+	
+	/* Testing Read by Name */
+	if(read_dentry_by_name(fname, &test_dentry) == 0)
+	{
+		printf("Read by Name: SUCCESS\n");
+		printf("File Name: %s ", test_dentry.file_name);
+		printf("File Type: %u ", test_dentry.file_type);
+		printf("Inode Number: %u", test_dentry.inode_num);
+		printf("\n");
+	}
+	else
+	{
+		printf("Read by Name: FAIL\n");
+	}
+
+	/* Testing Read Data */
+	if(read_data(test_dentry.inode_num, 0, testing_buffer, 6000) > 0)
+	{
+		printf("Read Data: SUCCESS\n");
+	}
+	else
+	{
+		printf("Read Data: FAIL\n");
+	}
+
 }
 
 
@@ -306,6 +349,7 @@ int32_t read_dir(uint8_t* buf)
 	}	
 
 	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
+	printf("File Name: %s\n", dir_entries[dir_counter].file_name);
 	dir_counter = dir_counter + 1;				// increment the num of directories read
 
 	uint32_t length_read = strlen((const int8_t*) buf);

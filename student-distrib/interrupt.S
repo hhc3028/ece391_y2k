@@ -36,3 +36,4 @@ done:
 	ret
 operations:
 #	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+

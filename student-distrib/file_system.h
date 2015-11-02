@@ -65,6 +65,6 @@ int32_t write_dir(void);
 int32_t close_dir(void);
 
 /* Function to test File Systems */
-extern void test_file_systems(void);
+extern void test_file_systems(const uint8_t* fname);
 
 #endif 	/* _FILESYSTEM_H */

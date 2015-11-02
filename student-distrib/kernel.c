@@ -10,6 +10,7 @@
 #include "rtc.h"
 #include "paging.h"
 #include "keyboard.h"
+#include "file_system.h"
 
 /* ADDED */
 /* Include to deal with idt initialization */
@@ -18,6 +19,9 @@
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+
+uint32_t starting_address;
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -62,6 +66,9 @@ entry (unsigned long magic, unsigned long addr)
 		int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
+
+		starting_address = mod->mod_start;
+
 		while(mod_count < mbi->mods_count) {
 			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -162,12 +169,18 @@ entry (unsigned long magic, unsigned long addr)
 	//initialize_paging();
 
 	/* initialize the RTC to 2Hz */
-	rtc_initialize();
-	
-	
+	rtc_initialize();	
 	
 	/* initialize keyboard */
 	initialize_keyboard();
+	
+	/* TESTING FILE SYSTEMS */
+	init_file_systems(starting_address);
+	printf("Init File Systems Done\n");
+	test_file_systems((uint8_t*)"frame0.txt");
+	printf("Done testing\n");
+	/* FINISH FILE SYSTEMS TESTING */
+
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

@@ -23,4 +23,6 @@ void keyboard_int_handler(void);
 int32_t terminal_read(unsigned char * buffer, int32_t nbytes);
 int32_t terminal_write(unsigned char *buffer, int32_t nbytes);
 void handle_max_buffer();
+void update_cursor(int row, int col);
+
 #endif /* _KEYBOARD_H*/

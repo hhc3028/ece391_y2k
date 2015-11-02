@@ -27,7 +27,7 @@ unsigned char scancode[4][90] =
 	{	//no special key
 	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
-	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
 	0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -35,7 +35,7 @@ unsigned char scancode[4][90] =
 	{	//for shift keys
 	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', //14
 	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
-	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', //14
+	0, 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '\"', '~', //14
 	0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, '*', //14
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -43,7 +43,7 @@ unsigned char scancode[4][90] =
 	{	//for caplocks
 	0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',
 	0, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', //14
-	'\n', 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`', //14
+	0, 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', '`', //14
 	0, '\\', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 0, '*', //14
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, //34
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	
@@ -51,7 +51,7 @@ unsigned char scancode[4][90] =
 	{	//for caplock + shift
 	0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
 	0, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '{', '}',
-	'\n', 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"', '~',
+	0, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':', '\"', '~',
 	0, '|', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '<', '>', '?', 0, '*',
 	0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0,
 	0, '+', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -78,13 +78,18 @@ void initialize_keyboard() {
 		{buffer[a] = '\0';
 		buf[a] = '\0';}
 }
-
+/*
+	DESCRIPTION: takes in the buffer value and puts it into the terminal buffer
+	Inputs: buffer = buffer val to be put into terminal
+			nbytes = size of the data to be put in
+	returns nbytes successfully read
+*/
 int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
 {
 	int j;
 	while(!allow_read)
-
-	if(screen_y > 23)
+	{}
+	if(screen_y >= 23)
 	{
 		handle_max_buffer();
 	}
@@ -102,16 +107,42 @@ int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
 	i = 0;
 	allow_read = 0;
 	screen_x = 0;
+	terminal_write(buf, nbytes);
 	return j;
 }
 
+/* 
+	DESCRIPTION: takes in buffer read from terminal read and outputs it onto screen
+	inputs 	buf = terminal buf char array
+			nbytes = size of data to be outputted
+	returns nbytes successfully read
+	outputs the buf char array onto screen
+	
+*/
 int32_t terminal_write(unsigned char * buf, int32_t nbytes)
 {
 	int count;
 	for(count = 0; count < nbytes; count++)
 	{
+		if ((screen_y < (NUM_ROWS - 2)) && (screen_x >= (NUM_COLS)))
+		{
+			screen_x = 0;
+			screen_y++;
+		}
+		else if(screen_x >= (NUM_COLS ) && (screen_y >= (NUM_ROWS -2)))
+		{
+			handle_max_buffer();
+		}
 		putc(buf[count]);
+		//update_cursor(screen_y, screen_x);
 	}
+	if(screen_y >= (NUM_ROWS - 2))
+		handle_max_buffer();
+	else
+	{
+		putc('\n');
+	}
+	//update_cursor(screen_y, screen_x);
 	return count;
 }
 
@@ -227,6 +258,7 @@ void keyboard_getchar()
 			buffer[i] = out;
 			i++;
 		}
+		update_cursor(screen_y, screen_x);
 			//clear screen
 		break;
 	case(BACKSPACE):
@@ -238,20 +270,24 @@ void keyboard_getchar()
 				putc(' ');
 				screen_x--;
 			}
-			else
+			else if((screen_x == 0) && (i > 0))
 			{
-				screen_x = 80;
+				screen_x = 78;
 				screen_y--;
 				putc(' ');
+				screen_x = 78;
 			}
 			buffer[i-1] = '\0';
 			i--;
+		update_cursor(screen_y, screen_x);		
 		}
 		break;
 	case(ENTER):
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
 		allow_read = 1;
+		terminal_read(buffer, i);
+		//s_code = 0x01;
 		break;
 	default:
 		out = scancode[flag][s_code];
@@ -264,7 +300,7 @@ void keyboard_getchar()
 		screen_y = curr_ycoord;
 		for(j = 0; j < i; j++)
 		{
-			if(screen_x >= (NUM_COLS - 1))
+			if(screen_x >= (NUM_COLS))
 			{
 				if(screen_y < (NUM_ROWS - 2))	
 				{
@@ -277,8 +313,10 @@ void keyboard_getchar()
 				}
 			}
 			putc(buffer[j]);
+			//update_cursor(screen_y, screen_x);
 		}
 		break;
+	//update_cursor(screen_y, screen_x);
 	}
 }
 
@@ -298,7 +336,12 @@ int32_t terminal_close()
 	return 0;
 }
 
-
+/*
+	DESCRIPTION When the terminal stuff gets too low on screen and almost out of bounds
+				this will slide the screen up by one line to keep things in bounds
+	inputs 	none
+	outputs slides everything on screen by one up vertically
+*/
 void handle_max_buffer()
 {
 	for(screen_y = 0; screen_y < NUM_ROWS; screen_y++)
@@ -320,5 +363,24 @@ void handle_max_buffer()
 
 	screen_y = NUM_ROWS - 2;
 	screen_x = 0;
-	curr_ycoord--;
+	if(i != 0)
+		curr_ycoord--;
+	
+	update_cursor(screen_y, screen_x);
 }
+/*
+	DESCRIPTION This keeps in track of cursor
+	input row & col = position of the current cursor
+	output = sets the cursor to where we are currently typing
+*/
+ void update_cursor(int row, int col) //from OSdev
+ {
+    unsigned short position=(row * 80) + col;
+ 
+    // cursor LOW port to vga INDEX register
+    outb(0x0F, 0x3D4);
+    outb((unsigned char)(position & 0xFF), 0x3D5);
+    // cursor HIGH port to vga INDEX register
+    outb(0x0E, 0x3D4);
+    outb((unsigned char )((position >> 8) & 0xFF), 0x3D5);
+ }
