@@ -159,15 +159,11 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
-<<<<<<< HEAD
 	//initialize_paging();
-=======
-	initialize_paging();
->>>>>>> master
 
 	/* initialize the RTC to 2Hz */
 	rtc_initialize();
-	int32_t * freq;
+	
 	
 	
 	/* initialize keyboard */
@@ -184,6 +180,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	// testing for changing RTC freq
 	/*
+	int32_t * freq;
 	int32_t temp = 2;
 	freq = &temp;
 	rtc_write(freq, 4);
@@ -217,3 +214,4 @@ entry (unsigned long magic, unsigned long addr)
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
+

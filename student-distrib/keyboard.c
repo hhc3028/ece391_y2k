@@ -10,15 +10,16 @@
 #define R_SHFT_REL 0xB6
 #define L_SHFT_REL 0xAA
 #define BACKSPACE 0x0E
-#define ENTER 
+#define ENTER 0x1C
 
 static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
-static char buffer[128] = '\0';
+static unsigned char buffer[128];
 static int curr_xcoord = 0;
 static int curr_ycoord = 0;
 static int allow_read = 0;
+char * vid_mem = (char*)VIDEO;
 
 /* Array for the characters without shift or CAPS */
 unsigned char scancode[4][90] =
@@ -69,12 +70,13 @@ void initialize_keyboard() {
 	/* Enable the irq of the PIC for the keyboard */
 	enable_irq(KEYBOARD_IRQ);
 	i = 0;
-	cursor_pos = 0;
 	flag = 0;
 	c_flag = 0;
 	ctrl_flag = 0;
-	buffer = '\0';
-	buf = '\0';
+	int a;
+	for (a = 0; a < 128; a++)
+		{buffer[a] = '\0';
+		buf[a] = '\0';}
 }
 
 int32_t terminal_read(unsigned char * buf, int32_t nbytes)
@@ -122,7 +124,7 @@ int32_t terminal_write(unsigned char * buf, int32_t nbytes)
 unsigned char getScancode() //from OSDev
 {
 	unsigned char c = inb(KEY_PORT);
-	if((c > 0) && (c < 0x58) || (c == R_SHFT_REL) || (c == L_SHFT_REL) || (c == CTRL_REL))
+	if(((c > 0) && (c < 0x58)) || (c == L_SHFT_REL) || (c == CTRL_REL))
 		return c;
 	else
 		return 0;
@@ -147,21 +149,33 @@ void keyboard_getchar()
 		curr_ycoord = screen_y;
 		curr_xcoord = screen_x;
 	}
-	char s_code = getScancode();
+	unsigned char s_code = getScancode();
 	switch (s_code)
 	{
-	case(RIGHT_SHFT || LEFT_SHFT):
+		/*
+	case(RIGHT_SHFT):
 		if(flag == 2)
 			flag = 3;
 		else
 			flag = 1;
+		s_code = 0x01;
 		break;
+		*/
+	case(LEFT_SHFT):
+		if(flag == 2)
+			flag = 3;
+		else
+			flag = 1;
+		s_code = 0x01;
+		break;	
+		/*	
 	case(R_SHFT_REL):
 		if(flag == 3)
 			flag = 2;
 		else 
 			flag = 0;
 		break;
+		*/
 	case(L_SHFT_REL):
 		if(flag == 3)
 			flag = 2;
@@ -205,6 +219,9 @@ void keyboard_getchar()
 	case(BACKSPACE):
 		if(i > 0)
 		{
+			screen_x--;
+			putc(' ');
+			screen_x--;
 			buffer[i-1] = '\0';
 			i--;
 		}
@@ -213,6 +230,7 @@ void keyboard_getchar()
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
 		allow_read = 1;
+		putc('@');
 		break;
 	default:
 		break;
@@ -225,6 +243,7 @@ void keyboard_getchar()
 	}
 	screen_x = curr_xcoord;
 	screen_y = curr_ycoord;
+	int j;
 	for(j = 0; j < i; j++)
 	{
 		if(screen_x >= NUM_COLS)
@@ -255,7 +274,7 @@ void keyboard_int_handler()
 	send_eoi(KEYBOARD_IRQ);
 }
 
-int32_t terminal_close();
+int32_t terminal_close()
 {
 	return 0;
 }
@@ -269,13 +288,13 @@ void handle_max_buffer()
 		{
 			if(screen_y != (NUM_ROWS - 1))
 			{
-		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
-		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = *(uint8_t *)(vid_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = *(uint8_t *)(vid_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
 			}
 			else if(screen_y == (NUM_ROWS - 1))
 			{
-				*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-		    	*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+				*(uint8_t *)(vid_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
 		    }
 		}
 	}

@@ -4,6 +4,9 @@
 
 #include "lib.h"
 
+char* video_mem = (char *)VIDEO;
+
+
 /*
 * void clear(void);
 *   Inputs: void

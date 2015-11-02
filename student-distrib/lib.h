@@ -12,7 +12,6 @@
 #define VIDEO 0xB8000
 #define ATTRIB 0x7
 
-char* video_mem = (char *)VIDEO;
 int screen_x;
 int screen_y;
 
