@@ -79,18 +79,19 @@ void initialize_keyboard() {
 		buf[a] = '\0';}
 }
 
-int32_t terminal_read(unsigned char * buf, int32_t nbytes)
+int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
 {
 	int j;
 	while(!allow_read)
 
-	if(screen_y >23)
+	if(screen_y > 23)
 	{
 		handle_max_buffer();
 	}
 	else
 	{
-		putc('\n');
+		screen_y++;
+		screen_x = 0;
 	}
 	for(j = 0; j < nbytes; j++)
 	{
@@ -144,10 +145,13 @@ void keyboard_getchar()
 	//need to map it and interpret it
 	//then have it so it can output it
 	unsigned char out = 0;
+	int j;
 	if(i == 0)
 	{
 		curr_ycoord = screen_y;
 		curr_xcoord = screen_x;
+		if(curr_ycoord > 23)
+			handle_max_buffer();
 	}
 	unsigned char s_code = getScancode();
 	switch (s_code)
@@ -206,22 +210,40 @@ void keyboard_getchar()
 	case(CTRL_REL):
 		ctrl_flag = 0;
 		break;
-	case(0x28): // 0x28 is scan value of L
+	case(0x26): // 0x26 is scan value of L
 		if(ctrl_flag == 1)
 		{
+			for(j = 0; j < i; j++)
+				buffer[j] = NULL;
 			s_code = 0x01; //clear the L scan value so it won't print
 			clear();
 			screen_x = 0;
 			screen_y = 0;
+			i = 0;
+		}
+		else if(i < 128)
+		{
+			out = scancode[flag][s_code];
+			buffer[i] = out;
+			i++;
 		}
 			//clear screen
 		break;
 	case(BACKSPACE):
 		if(i > 0)
 		{
-			screen_x--;
-			putc(' ');
-			screen_x--;
+			if(screen_x > 0)
+			{
+				screen_x--;
+				putc(' ');
+				screen_x--;
+			}
+			else
+			{
+				screen_x = 80;
+				screen_y--;
+				putc(' ');
+			}
 			buffer[i-1] = '\0';
 			i--;
 		}
@@ -230,37 +252,34 @@ void keyboard_getchar()
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
 		allow_read = 1;
-		putc('@');
 		break;
 	default:
+		out = scancode[flag][s_code];
+		if((out != 0) && (i < 128))	
+		{
+			buffer[i] = out;
+			i++;
+		}
+		screen_x = curr_xcoord;
+		screen_y = curr_ycoord;
+		for(j = 0; j < i; j++)
+		{
+			if(screen_x >= (NUM_COLS - 1))
+			{
+				if(screen_y < (NUM_ROWS - 2))	
+				{
+					screen_y++;
+					screen_x = 0;
+				}
+				else if (screen_y >= 23)
+				{
+					handle_max_buffer();
+				}
+			}
+			putc(buffer[j]);
+		}
 		break;
 	}
-	out = scancode[flag][s_code];
-	if((out != 0) && (i < 128))
-	{
-		buffer[i] = out;
-		i++;
-	}
-	screen_x = curr_xcoord;
-	screen_y = curr_ycoord;
-	int j;
-	for(j = 0; j < i; j++)
-	{
-		if(screen_x >= NUM_COLS)
-		{
-			if(screen_y < (NUM_ROWS - 1))
-			{
-				screen_y++;
-				screen_x = 0;
-			}
-			else
-			{
-				handle_max_buffer();
-			}
-		}
-		putc(buffer[j]);
-	}
-
 }
 
 /* Interrupt handler for the keyboard */
@@ -286,12 +305,12 @@ void handle_max_buffer()
 	{
 		for(screen_x = 0; screen_x < NUM_COLS; screen_x++)
 		{
-			if(screen_y != (NUM_ROWS - 1))
+			if(screen_y < (NUM_ROWS - 2))
 			{
 		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = *(uint8_t *)(vid_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
 		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = *(uint8_t *)(vid_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
 			}
-			else if(screen_y == (NUM_ROWS - 1))
+			else if(screen_y >= (NUM_ROWS - 2))
 			{
 				*(uint8_t *)(vid_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
 		    	*(uint8_t *)(vid_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -299,6 +318,7 @@ void handle_max_buffer()
 		}
 	}
 
-	screen_y = NUM_ROWS - 1;
+	screen_y = NUM_ROWS - 2;
 	screen_x = 0;
+	curr_ycoord--;
 }
