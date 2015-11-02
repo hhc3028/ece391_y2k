@@ -184,6 +184,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		buffer_index++;
 	}
 	
+	printf("\n");
 	printf("Length Read: %d\n", length);
 	return length;
 }
@@ -203,12 +204,18 @@ void test_file_systems(const uint8_t* fname)
 	uint32_t index;
 	dentries_t test_dentry;			// dentry variable to help with testing
 
+	uint8_t testing_buffer[6000];	// buffer used for testing
+	for(index = 0; index < 6000; index ++)
+	{
+		testing_buffer[index] = NULL;
+	}
+
 	/* Testing Init File System Pointers and Struct */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
 	printf("Number of Dentries: %d\n", bootBlock->num_dentries);
 	printf("Number of INodes: %d\n", bootBlock->num_inodes);
 	printf("Number of Data Blocks: %d\n", bootBlock->num_dataBlocks);
-	printf("%s\n", );
+	printf("Set up: DONE\n");
 
 	/* Testing Read by Index */
 	for(index = 0; index < bootBlock->num_dentries; index ++)
@@ -225,21 +232,17 @@ void test_file_systems(const uint8_t* fname)
 			printf("Read by Index Failed :(\n");
 		}
 	}
+	printf("Read by Index: SUCCESS\n");
 
 	/* Testing LS Functionality */
-	uint8_t testing_buffer[6000];
-	for(index = 0; index < 6000; index ++)
-	{
-		testing_buffer[index] = NULL;
-	}
-	for(index = 0; index < bootBlock->num_dentries; index ++)
+	/*for(index = 0; index < bootBlock->num_dentries; index ++)
 	{
 		read_dir(testing_buffer);
-	}
+	}*/
 	
 	
 	/* Testing Read by Name */
-	if(read_dentry_by_name(fname, &test_dentry) == 0)
+	/*if(read_dentry_by_name(fname, &test_dentry) == 0)
 	{
 		printf("Read by Name: SUCCESS\n");
 		printf("File Name: %s ", test_dentry.file_name);
@@ -250,24 +253,18 @@ void test_file_systems(const uint8_t* fname)
 	else
 	{
 		printf("Read by Name: FAIL\n");
-	}
+	}*/
 
 	/* Testing Read Data */
-	uint8_t testing_buffer[6000];
-	for(index = 0; index < 6000; index ++)
-	{
-		testing_buffer[index] = NULL;
-	}
-
-	if(read_data(test_dentry.inode_num, 0, testing_buffer, 100) > 0)
+	/*if(read_data(test_dentry.inode_num, 0, testing_buffer, 6000) > 0)
 	{
 		printf("Read Data: SUCCESS\n");
 	}
 	else
 	{
 		printf("Read Data: FAIL\n");
-	}
-	
+	}*/
+
 }
 
 
