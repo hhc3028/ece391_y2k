@@ -2,10 +2,12 @@
 
 #include "file_system.h"
 #include "lib.h"
+#include "x86_desc.h"
 
 uint32_t boot_block_addr;					// stores the address of the boot block
 
 uint32_t dir_counter;						// stores the # of dirct entries read
+uint32_t is_open;							// 1 for open, 0 for not open
 
 static dentries_t* 		dir_entries;		// starting address of the dir. entries
 static inodes_t* 		index_node;			// starting address of the index nodes
@@ -44,6 +46,140 @@ void init_file_systems(uint32_t address)
 	return;
 }	
 
+/********** CHECKPOINT 3 FUNCTIONS **********/
+
+/*
+*	filesystem_load
+*	DESCRIPTION:	Loads the corresponding file into the address passed 
+*	INPUT:			fname - the name of the file, address - the starting address of our buffer
+*	OUTPUT:			NONE
+*	RETURN VALUE:	Return 0 (Success), Return -1 (Fail)
+*	SIDE EFFECT:	Loads the file from the corresponding fname into the buffer at the
+*					corresponding address
+*/
+int32_t filesystem_load(const uint8_t* fname, uint32_t address)
+{
+	if(fname == NULL) 		// check if the file name is valid
+	{
+		return -1;			// if not, return -1 (Fail)
+	}
+
+	if(address == 0)		// if there isnt a valid address
+	{
+		return -1;			// return -1 (Fail)
+	}
+
+	dentries_t fs_dentry;	// local dentry variable used in this function
+
+	// copy the file corresponding to fname into the dentry variable
+	int32_t is_valid = read_dentry_by_name((uint8_t*) fname, &fs_dentry);
+	if(is_valid == 0)		// if the copy was a success
+	{
+		// read the data into the address with the coressponding file
+		is_valid = read_data(fs_dentry.inode_num, 0, (uint8_t*) address, index_node[fs_dentry.inode_num].length_B);
+		if(is_valid >= 0)	// if the copy into the address worked
+		{
+			return 0;
+		}
+		return -1;			// if the read data fails, return -1 (Fail)
+	}
+	return -1;				// if the read by name fails, return -1 (Fail)
+}
+
+/*
+*	filesystem_open
+*	DESCRIPTION:	Sets up the file system with the passed in addess
+*	INPUT:			address - the starting address of our file system
+*	OUTPUT:			NONE
+*	RETURN VALUE:	Return 0 (Success), Return -1 (Fail)
+*	SIDE EFFECT:	sets the starting address of the file system with the 
+*					parameter address. is there is currently a file open
+*					return -1 (Fail)
+*/
+int32_t filesystem_open(uint32_t address)
+{
+	// Check if the file system is already open
+	if(is_open == 0)					// if the file system is not currently open
+	{
+		init_file_systems(address);		// initialize the start of the file system
+		is_open = 1;					// set is_open to 1, file system is open
+		return 0;						// return success
+	}
+	else								// if the file system is currently open
+		return -1;						// return -1 (Failure)
+}
+
+/*
+*	filesystem_close
+*	DESCRIPTION:	Check whether the file system needs closing
+*	INPUT:			NONE
+*	OUTPUT:			NONE
+*	RETURN VALUE:	Return 0 (on Success), Return -1 (on Fail)
+*	SIDE EFFECT:	if the file system is currently open, then set is_open to 0
+*					closing the file. Otherwise the file system isnt currently open
+*/
+int32_t filesystem_close(void)
+{
+	// Check if the file system is currently open
+	if(is_open == 1)			// if the current file system is open
+	{
+		is_open = 0;			// set is_open to 0, file system is closed
+		return 0;				// return 0 (Success)
+	}
+	else						// the file system isnt open yet
+		return -1;				// thus close returns -1 (Fail)
+}
+
+/*
+*	filesystem_read
+*	DESCRIPTION:	reads the file given by fname and copies it into the buffer
+*	INPUT:			fname - the file name we want to read, offset - where we want 
+*					to start reading, buf - the buffer we want to copy to, length - the 
+* 					amount we want to read
+*	OUTPUT:			NONE
+*	RETURN VALUE:	return -1 (Fail), return READ_DATA (the amount of bytes read)
+*	SIDE EFFECT:	Copies the file corresponding to fname and copies it into buf
+*/
+int32_t filesystem_read(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length)
+{
+	if(buf == NULL)			// check if there is a valid buffer
+	{
+		return -1;			// if not, return -1 (fail)
+	}
+	
+	if(fname == NULL)		// check if the file name is valid
+	{
+		return -1;			// if not return -1 (fail)
+	}
+
+	dentries_t fs_dentry;	// local variable used in this function only
+
+	// copy the file into the local dentry variable
+	int32_t is_valid = read_dentry_by_name((uint8_t*) fname, &fs_dentry);
+	// check if the copy into the dentry was successful
+	if(is_valid == 0)		// if the copy was a success
+	{
+		// read the number of bytes read and copy into the buffer
+		return read_data(fs_dentry.inode_num, offset, buf, length);
+	}
+	else					// if the copy was unsuccessful
+		return -1;			// return -1 (Fail)
+}
+
+/*
+*	filesystem_write
+*	DESCRIPTION:	Does nothing because our file is read only
+*	INPUT:			NONE
+*	OUTPUT:			NONE
+*	RETURN VALUE:	Return 0 (Nothing Happens)
+*	SIDE EFFECT:	Our file is read only so write function does nothing
+*/
+int32_t filesystem_write(void)
+{
+	return 0;
+}
+
+/********** CHECKPOINT 2 FUNCTIONS **********/
 
 /*
 *	read_dentry_by_name
@@ -56,7 +192,7 @@ void init_file_systems(uint32_t address)
 */
 int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 {
-	uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+	uint32_t name_length = strlen((int8_t*)fname);	// store the length of the file name
 	
 	/* check is the file name is of valid size */
 	if(1 < name_length && name_length < NAME_SIZE)
@@ -74,18 +210,18 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 		{
 			/* Copy the dir entry at index to the curr_dentry variable */
 			int bullshit = read_dentry_by_index(i, &curr_dentry);
-			if(bullshit == FAIL)						// if bullshit is -1
+			if(bullshit == FAIL)					// if bullshit is -1
 			{
-				return FAIL;							// the copy by index failed
+				return FAIL;						// the copy by index failed
 			}
 
 			/* Call the function from Lib.c to compare the names, 0 for match */
 			int is_same = strncmp((int8_t*)fname, (int8_t*)curr_dentry.file_name, NAME_SIZE);
 			
-			if(is_same == SUCCESS)						// if the names match
+			if(is_same == SUCCESS)					// if the names match
 			{
 				*dentry = curr_dentry;				// copy the curr_dentry to the dentry passed into function
-				return SUCCESS;							// return success (0)
+				return SUCCESS;						// return success (0)
 			}
 		}		
 	}
@@ -110,7 +246,7 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 	total_dir_entries = bootBlock->num_dentries;
 
 	/* Check to see if the index is valid */
-	if(total_dir_entries <= index)		// is the index bigger than total amount fo dentries
+	if(total_dir_entries <= index)			// is the index bigger than total amount fo dentries
 	{
 		return FAIL;						// if yes, then return fail (-1)
 	}
@@ -136,32 +272,27 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
-	/*dentries_t curr_dentry;							// holds the ptr to inode
-	if(read_dentry_by_index(inode, &curr_dentry) == -1)
-	{
-		return -1;
-	}*/
 
 	inodes_t * curr_inode = &index_node[inode];
-	uint32_t file_length = curr_inode->length_B;	// store the length of file into variable
+	uint32_t file_length = curr_inode->length_B;		// store the length of file into variable
 
 	/* Check if the file length is valid */
-	if(file_length > PAGE_SIZE * FOUR_KB_SIZE)					// if the file length isn't within range
+	if(file_length > PAGE_SIZE * FOUR_KB_SIZE)			// if the file length isn't within range
 	{
 		return FAIL;									// return failure (-1)
 	}
 
 	/* Check if the starting point is out of range */
-	if(file_length <= offset)						// if the offset starts beyond the file length
+	if(file_length <= offset)							// if the offset starts beyond the file length
 	{
 		return SUCCESS;									// return success and dont include anything into the buffer
 	}
 
 	/* Fix the length if it goes over the actual File length */
-	uint32_t length_to_read = file_length - offset;				// get the amount to read
-	if(length_to_read < length)									// if the length is longer than the amount to read
+	uint32_t length_to_read = file_length - offset;		// get the amount to read
+	if(length_to_read < length)							// if the length is longer than the amount to read
 	{
-		length = length_to_read;								// length is changed to the amount to actually read
+		length = length_to_read;						// length is changed to the amount to actually read
 	}
 
 
@@ -169,7 +300,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	uint32_t buffer_index = 0;
 	data_block_t * cur_dblock = data_blocks + curr_inode->dblock[start_index];
 
-	uint32_t i;													// variable to keep track of which dblock we are on
+	uint32_t i;											// variable to keep track of which dblock we are on
 	for(i = offset; i < length + offset; i++) 
 	{
 		if((i / FOUR_KB_SIZE) > start_index) 
@@ -178,15 +309,17 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 			cur_dblock = data_blocks + curr_inode->dblock[start_index];
 		}
 		buf[buffer_index] = cur_dblock->data_nodes[i % FOUR_KB_SIZE];
-		//printf("%c", buf[buffer_index]);						// uncomment to print everything in file
+		//printf("%c", buf[buffer_index]);				// uncomment to print everything in file
 		buffer_index++;
 	}
 	
 	printf("\n");
-	printf("Length Read: %d\n", length);
-	printf("Total Size of File: %u\n", file_length);
+	//printf("Length Read: %d\n", length);
+	//printf("Total Size of File: %u\n", file_length);
 	return length;
 }
+
+/********** TESTING CHECKPOINT 2 FUNCTION **********/
 
 /*
 *	test_file_systems
@@ -268,7 +401,7 @@ void test_file_systems(const uint8_t* fname)
 
 
 
-/* File Operations */
+/********** FILE OPERATIONS **********/
 
 int32_t open_file()
 {
@@ -327,7 +460,7 @@ int32_t close_file()
 	return 0;
 }
 
-/* Directory Operations */
+/********** Directory Operations **********/
 int32_t open_dir(void)
 {
 	return 0;
@@ -348,7 +481,7 @@ int32_t read_dir(uint8_t* buf)
 	}	
 
 	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
-	printf("File Name: %s\n", dir_entries[dir_counter].file_name);
+	//printf("File Name: %s\n", dir_entries[dir_counter].file_name);
 	dir_counter = dir_counter + 1;				// increment the num of directories read
 
 	uint32_t length_read = strlen((const int8_t*) buf);
