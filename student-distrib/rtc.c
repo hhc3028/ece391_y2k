@@ -163,7 +163,7 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
 
 /*
  * rtc_open()
- *
+ *set frequency to default rate
  * Opens the RTC.
  *
  * Inputs: none
@@ -172,6 +172,7 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
 
 uint32_t rtc_open(void)
 {
+	setFreq(2);
 	return 0;
 }
 
@@ -179,12 +180,13 @@ uint32_t rtc_open(void)
  * rtc_close()
  *
  * Closes the RTC.
- *
+ *set frequency to default rate
  * Inputs: none
  * Retvals: 0 
  */
 uint32_t rtc_close(void)
 {
+	setFreq(2);
 	return 0;
 }
 /*
