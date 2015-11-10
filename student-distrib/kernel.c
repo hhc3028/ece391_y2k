@@ -175,10 +175,10 @@ entry (unsigned long magic, unsigned long addr)
 	initialize_keyboard();
 	
 	/* TESTING FILE SYSTEMS */
-	init_file_systems(starting_address);
-	printf("Init File Systems Done\n");
-	test_file_systems((uint8_t*)"frame0.txt");
-	printf("Done testing\n");
+	//init_file_systems(starting_address);
+	//printf("Init File Systems Done\n");
+	//test_file_systems((uint8_t*)"frame0.txt");
+	//printf("Done testing\n");
 	/* FINISH FILE SYSTEMS TESTING */
 
 
@@ -192,9 +192,9 @@ entry (unsigned long magic, unsigned long addr)
 
 
 	// testing for changing RTC freq
-	/*
+	
 	int32_t * freq;
-	int32_t temp = 2;
+	int32_t temp = 1024;
 	freq = &temp;
 	rtc_write(freq, 4);
 	int i;
@@ -211,7 +211,7 @@ entry (unsigned long magic, unsigned long addr)
 		printf("\n");
 		printf("second_test");		
 	}
-	*/
+	
 
 
 
