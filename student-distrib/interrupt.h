@@ -9,6 +9,7 @@ extern void keyboard_int_handler();
 /* The actual handler for the rtc is defined externally */
 extern void rtc_int_handler();
 
+<<<<<<< HEAD
 /* The actual handler for the rtc is defined externally */
 extern void isr_handler();
 
@@ -34,6 +35,8 @@ extern void exception_aligment();
 extern void exception_machine();
 extern void exception_reserved();
 
+=======
+>>>>>>> origin/master
 /* The handlers for all of the system calls */
 /*extern int32_t halt(uint8_t status);
 extern int32_t execute(const uint8_t* command);

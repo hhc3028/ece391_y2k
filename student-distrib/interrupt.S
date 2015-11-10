@@ -3,6 +3,7 @@
 # Consulted http://wiki.osdev.org/Interrupt_Service_Routines on how to write
 .globl	keyboard_wrapper
 .globl	rtc_wrapper
+<<<<<<< HEAD
 .globl	isr_wrapper
 .globl	exception_divide_wrapper
 .globl	exception_step_wrapper
@@ -24,13 +25,18 @@
 .globl	exception_alignment_wrapper
 .globl	exception_machine_wrapper
 .globl	exception_reserved_wrapper
+=======
+>>>>>>> origin/master
 .globl	sys_call_handler
 .align	4
 
 # Assembly linkage to the keyboard interrupt handler
 keyboard_wrapper:
+<<<<<<< HEAD
 	pushl	%ebp
 	movl	%esp, %ebp
+=======
+>>>>>>> origin/master
 	cli
 	pushal
 
@@ -38,13 +44,19 @@ keyboard_wrapper:
 
 	popal
 	sti
+<<<<<<< HEAD
 	leave
+=======
+>>>>>>> origin/master
 	iret
 	
 # Assembly linkage to the rtc interrupt handler
 rtc_wrapper:
+<<<<<<< HEAD
 	pushl	%ebp
 	movl	%esp, %ebp
+=======
+>>>>>>> origin/master
 	cli
 	pushal
 
@@ -52,6 +64,7 @@ rtc_wrapper:
 
 	popal
 	sti
+<<<<<<< HEAD
 	leave
 	iret
 
@@ -357,6 +370,10 @@ exception_reserved_wrapper:
 	iret
 
 # Assembly linkage for the system call handler
+=======
+	iret
+
+>>>>>>> origin/master
 sys_call_handler:
 	cmpl	$9, %eax
 	ja		done
@@ -364,4 +381,9 @@ sys_call_handler:
 done:
 	ret
 operations:
+<<<<<<< HEAD
 #	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+=======
+#	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+
+>>>>>>> origin/master

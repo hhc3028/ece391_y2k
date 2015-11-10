@@ -9,9 +9,15 @@
 #define DENTRY_RESERVE	24		// the 24B reserved space in the dir. entry
 #define FOUR_KB_SIZE	4096	// 4kB
 #define NUM_OF_DENTRY	63		// there are 63 dir. entries stored in boot block
+#define PAGE_SIZE		1023
+#define BIG_BUF_SIZE	6000
+#define INCR_ONE		1
+#define SUCCESS			0
+#define FAIL			-1
+
 /* FILE TYPES */
-#define TYPE_USER		0		// ignore index node
-#define TYPE_RTC		1		// ignore index node
+#define TYPE_RTC		0		// ignore index node
+#define TYPE_DIR		1		// ignore index node
 #define TYPE_REGULAR	2		// index node is only meaningful for regular files
 
 /* The structs for the File System types */
@@ -26,7 +32,7 @@ typedef struct dentries 							// struct for rest of dir. entries
 typedef struct inodes 					// struct for index nodes
 {
 	uint32_t length_B;					// length in B
-	uint32_t dblock[1023];				// the total size of datablock for inode
+	uint32_t dblock[PAGE_SIZE];				// the total size of datablock for inode
 } inodes_t;
 
 typedef struct data_block 				// struct for the data block
@@ -57,13 +63,20 @@ int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t 
 int32_t write_file(void);
 int32_t close_file(void);
 
-/* Directory Operations */
-int32_t open_dirct(void);
-int32_t read_dirct(uint8_t* buf);
-int32_t write_dirct(void);
-int32_t close_dirct(void);
+/*Directory Operations */
+int32_t open_dir(void);
+int32_t read_dir(uint8_t* buf);
+int32_t write_dir(void);
+int32_t close_dir(void);
 
 /* Function to test File Systems */
+<<<<<<< HEAD
 //void test_file_system(uint32_t address);
 
 #endif 	/* _FILESYSTEM_H */
+=======
+extern void test_file_systems(const uint8_t* fname);
+
+#endif 	/* _FILESYSTEM_H */
+
+>>>>>>> origin/master

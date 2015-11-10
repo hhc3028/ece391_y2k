@@ -30,4 +30,7 @@ uint32_t rtc_close(void);
 
 //helper function to determine if x is power of 2
 int isPowerOfTwo (int32_t x);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master

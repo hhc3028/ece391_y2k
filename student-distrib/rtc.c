@@ -26,9 +26,14 @@ uint32_t rtc_initialize()
 	char prev = inb(DATA_PORT);					// read the current value of register B
 	outb(STATUS_B, INDEX_PORT);					//set index again
 	outb(prev | 0x40, DATA_PORT);				//enable bit 6 of register B
+<<<<<<< HEAD
 	setFreq(1024);									// call function to set the frq = 2Hz
 	enable_irq(0x08);
 
+=======
+	setFreq(2);									// call function to set the frq = 2Hz
+	enable_irq(8);
+>>>>>>> origin/master
 	outb(inb(INDEX_PORT) & 0x7F, INDEX_PORT);	// enable Non-maskable interrupts
 	sti();										// unmask the interrupts
 	return 0;
@@ -46,8 +51,15 @@ uint32_t rtc_initialize()
 void rtc_int_handler(void)						// simple RTC for Checkpoint 1
 {
 	cli();
+<<<<<<< HEAD
 	outb(STATUS_C, INDEX_PORT);
 	inb(DATA_PORT);
+=======
+	outb(STATUS_C, INDEX_PORT);	
+	inb(DATA_PORT);
+	//test_interrupts();
+	
+>>>>>>> origin/master
 	send_eoi(8);
 
 	interrupt_flag = 1;
@@ -72,7 +84,11 @@ uint32_t setFreq(int32_t freq)
 		return -1;								// if not, return fail
 	}
 
+<<<<<<< HEAD
 	if(!isPowerOfTwo(freq))
+=======
+	if(!(isPowerOfTwo(freq)))
+>>>>>>> origin/master
 	{
 		return -1;
 	}
@@ -114,6 +130,7 @@ uint32_t setFreq(int32_t freq)
  */
 uint32_t rtc_read(void) 
 {
+<<<<<<< HEAD
 	int i = 0;
 	//while (interrupt_flag == 0)						//keep waiting before interupt happens
 	while(1)
@@ -122,6 +139,11 @@ uint32_t rtc_read(void)
 		printf("hello %d" ,i);
 		i++;
 	}
+=======
+	
+	while (interrupt_flag == 0);						//keep waiting before interupt happens
+
+>>>>>>> origin/master
 
 	interrupt_flag = 0;								//clear flag and return 0
 
@@ -154,10 +176,19 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
 
 	else
 	{
+<<<<<<< HEAD
 		freq = *set_freq;							
 	}
 
 	return setFreq(freq);							//return 0 - all bytes written
+=======
+		freq = *set_freq;
+	}
+	
+	setFreq(freq);						
+
+	return 0;						//return 0 - all bytes written
+>>>>>>> origin/master
 }													//return -1 if freq fail limit test in setFreq
 
 
@@ -165,7 +196,11 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
 
 /*
  * rtc_open()
+<<<<<<< HEAD
  *
+=======
+ *set frequency to default rate
+>>>>>>> origin/master
  * Opens the RTC.
  *
  * Inputs: none
@@ -174,6 +209,10 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
 
 uint32_t rtc_open(void)
 {
+<<<<<<< HEAD
+=======
+	setFreq(2);
+>>>>>>> origin/master
 	return 0;
 }
 
@@ -181,12 +220,20 @@ uint32_t rtc_open(void)
  * rtc_close()
  *
  * Closes the RTC.
+<<<<<<< HEAD
  *
+=======
+ *set frequency to default rate
+>>>>>>> origin/master
  * Inputs: none
  * Retvals: 0 
  */
 uint32_t rtc_close(void)
 {
+<<<<<<< HEAD
+=======
+	setFreq(2);
+>>>>>>> origin/master
 	return 0;
 }
 /*
@@ -198,4 +245,7 @@ int isPowerOfTwo (int32_t x)
   return ((x != 0) && ((x & (~x + 1)) == x));
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
