@@ -1,0 +1,81 @@
+int32_t execute(const uint8_t * command)
+{
+
+	uint8_t fname[32];
+	uint8_t buf[4];
+	uint32_t i;
+	uint32_t entry_point = 0;
+	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
+	uint8_t open_process;
+	uint32_t first_space_reached;
+	uint32_t length_of_fname;
+	uint8_t localargbuf[TERMINAL_BUFFER_MAX_SIZE];
+	
+
+
+	//check to see if the command is invalid
+	if(command == NULL)
+	{
+		return -1;
+	}
+
+	//storing the process's name and check for validity
+	for(i = 0; command[i] != '\0'; i++)
+	{	
+		if(command[i] == ' ' && first_space_reached == 0)
+		{
+			first_space_reached = 1;
+			length_of_fname = i;
+			fname[i] = '\0';
+		}
+
+		else if (first_space_reached == 1)
+		{
+			localargbuf[i - length_of_fname - 1] = command[i];
+		}
+
+		else
+		{
+			if(i >= 32 && first_space_reached == 0)
+			{
+				return -1;
+			}
+			fname[i] = command[i];
+		}
+	}
+
+	localargbuf[i - length_of_fname - 1] = '\0';
+
+	if(first_space_reached == 0)
+		{
+			fname[i] = '\0';
+		}
+
+	
+	//read the first 4 bytes of the file to check if it's executable or not
+	//and store in buf
+	if(read_file(*fname, 0, buf, 4) != 0)
+	{
+		return -1;
+	}
+	//checking the magic numbers
+	if(strncmp((const int8_t*)buf, (const int8_t*)magic_num, 4) != 0)
+	{
+		return -1;
+	}
+
+
+	
+
+
+
+
+
+
+
+
+
+}
+
+
+			
