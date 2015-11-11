@@ -9,6 +9,31 @@ extern void keyboard_int_handler();
 /* The actual handler for the rtc is defined externally */
 extern void rtc_int_handler();
 
+/* The actual handler for the rtc is defined externally */
+extern void isr_handler();
+
+/* The handlers for all of the exceptions */
+extern void exception_divide();
+extern void exception_step();
+extern void exception_nmi();
+extern void exception_breakpoint();
+extern void exception_overflow();
+extern void exception_bounds_check();
+extern void exception_undefined_op();
+extern void exception_missing_copro();
+extern void exception_doublefault();
+extern void exception_overrun_copro();
+extern void exception_TSS();
+extern void exception_segment();
+extern void exception_stack();
+extern void exception_GPF();
+extern void exception_page();
+extern void exception_interrupt();
+extern void exception_copro_err();
+extern void exception_aligment();
+extern void exception_machine();
+extern void exception_reserved();
+
 /* The handlers for all of the system calls */
 /*extern int32_t halt(uint8_t status);
 extern int32_t execute(const uint8_t* command);
