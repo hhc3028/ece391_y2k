@@ -1,5 +1,10 @@
 # interrupt.S - Set up interrupt wrappers
 
+#define KERNEL_CS 0x0010
+#define KERNEL_DS 0x0018
+#define USER_CS 0x0023
+#define USER_DS 0x002B
+
 # Consulted http://wiki.osdev.org/Interrupt_Service_Routines on how to write
 .globl	keyboard_wrapper
 .globl	rtc_wrapper
@@ -48,19 +53,17 @@ return_to_user:
 		movl	4(%esp),	%ebx	# store the EIP into EBX, EBX = EIP
 
 		movl 	$USER_DS,	%eax	# load the segment selectors
-		movw	%ax,		%gs 
+		
+		movw	%ax,		%ds 	# load the DS with the correct DS (from User)
+		movw	%ax, 		%es 	
 		movw	%ax, 		%fs
-		movw	%ax, 		%ds
-		movw	%ax, 		%es
+		movw	%ax, 		%gs
 
 		pushl 	%eax				# push the User_DS to the top of the stack
 
-		pushl 	%0x83FFFF0			# push the user space extended stack pointer
+		pushl 	%esp				# push the current stack pointer
 
 		pushf						# push the flags back to the stack
-		popl 	%eax 				# pop back out
-		orl 	$0x4200,	%eax	# adjust the flags
-		pushl 	%eax				# push the updated flags back onto the stack
 
 		pushl 	$USER_CS			# push the USER_CS to the top of the stack	
 		pushl 	%ebx 				# push the EIP onto the stack

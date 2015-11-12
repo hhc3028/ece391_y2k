@@ -21,7 +21,7 @@ extern int32_t vidmap(uint8_t** screen_start);
 extern int32_t set_handler(int32_t signum, void* handler_address);
 extern int32_t sigreturn(void);*/
 
-/* Function to reset the stack for User */
+/* Function to return the stack for User */
 extern void return_to_user(int32_t new_eip);
 
 #endif /* _INTERRUPT_H*/
