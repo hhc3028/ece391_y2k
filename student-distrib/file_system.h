@@ -52,6 +52,13 @@ typedef struct boot_block				// struct for the first block in memory
 /* Initializing the File System in memory */
 void init_file_systems(uint32_t address);
 
+/* Checkpoint 3 Functions */
+int32_t filesystem_load(const uint8_t* fname, uint32_t address);
+int32_t filesystem_open(uint32_t address);
+int32_t filesystem_close(void);
+int32_t filesystem_read(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length);
+int32_t filesystem_write(void);
+
 /* File System Utilies */
 int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry);
 int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry);
@@ -73,4 +80,3 @@ int32_t close_dir(void);
 extern void test_file_systems(const uint8_t* fname);
 
 #endif 	/* _FILESYSTEM_H */
-
