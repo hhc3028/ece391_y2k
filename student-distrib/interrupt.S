@@ -42,6 +42,14 @@ done:
 operations:
 #	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
 
+#
+#	return_to_user
+#	DESCRIPTION:	prep the stack for User
+#	INPUT:			new_eip - the new eip to add onto the stack
+#	OUTPUT:			NONE
+#	RETURN VALUE:	NONE
+#	SIDE EFFECT:	Setting up the stack for User
+#
 #---------- STACK ----------#
 #	TOP:
 #	EIP
@@ -55,7 +63,7 @@ return_to_user:
 		movl 	$USER_DS,	%eax	# load the segment selectors
 		
 		movw	%ax,		%ds 	# load the DS with the correct DS (from User)
-		movw	%ax, 		%es 	
+		movw	%ax, 		%es 	# load the other segment registers
 		movw	%ax, 		%fs
 		movw	%ax, 		%gs
 
