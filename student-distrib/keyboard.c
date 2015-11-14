@@ -2,20 +2,6 @@
 #include "lib.h"
 #include "i8259.h"
 
-#define RIGHT_SHFT 0x36
-#define LEFT_SHFT 0x2A
-#define CAPS 0x3A
-#define CTRL 0x1D
-#define CTRL_REL 0x9D
-#define R_SHFT_REL 0xB6
-#define L_SHFT_REL 0xAA
-#define BACKSPACE 0x0E
-#define ENTER 0x1C
-#define BUF_MAX 128
-#define L_KEY 0x26
-#define MAX_CHAR 90
-#define MAX_SCAN 0x58
-
 static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
@@ -81,6 +67,19 @@ void initialize_keyboard() {
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
 		buf[a] = '\0';}
+}
+
+int32_t terminal_open(){
+	flag = 0;
+	c_flag = 0;
+	ctrl_flag = 0;
+	int a;
+	for (a = 0; a < BUF_MAX; a++)
+	{
+		buffer[a] = '\0';
+		buf[a] = '\0';
+	}
+	i = 0;
 }
 /*
 	DESCRIPTION: takes in the buffer value and puts it into the terminal buffer
