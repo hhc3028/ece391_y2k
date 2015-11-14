@@ -1,10 +1,10 @@
 #define instruction_offset 24
 #define process_ld_addr 0x08048000
-#define _4KB       0x4000
+#define _4KB       0x1000
 #define _4MB       0x00400000
 #define _8MB       0x00800000
 #define _8KB       0x2000
-#define offset 	   //0xFFFFE000
+#define offset 	   0xFFFFE000
 
 //according to section 7.2 File System Abstraction 
 typedef struct file_descriptor_t {
