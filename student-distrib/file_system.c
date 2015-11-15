@@ -11,6 +11,7 @@ uint32_t dir_counter;						// stores the # of dirct entries read
 static dentries_t* 		dir_entries;		// starting address of the dir. entries
 static inodes_t* 		index_node;			// starting address of the index nodes
 static data_block_t* 	data_blocks;		// starting address of the data blocks
+static uint32_t			is_open = 0;
 
 /*
 *	init_file_systems
@@ -470,10 +471,10 @@ int32_t close_file(pcb_t * process_control_block, int32_t file_num)
 int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file)
 {
 	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
-	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)read_file;
-	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)write_file;
-	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)close_file;
-	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)open_file;
+	process_control_block->fd[file_num].fop_ptr.read = read_file;
+	process_control_block->fd[file_num].fop_ptr.write = write_file;
+	process_control_block->fd[file_num].fop_ptr.close = close_file;
+	process_control_block->fd[file_num].fop_ptr.open = open_file;
 	process_control_block->fd[file_num].flags = IN_USE;
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = &index_node[file.inode_num];
@@ -528,10 +529,10 @@ int32_t close_dir(pcb_t * process_control_block, int32_t file_num)
 int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t file)
 {
 	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
-	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)read_dir;
-	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)write_dir;
-	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)close_dir;
-	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)open_dir;
+	process_control_block->fd[file_num].fop_ptr.read = read_dir;
+	process_control_block->fd[file_num].fop_ptr.write = write_dir;
+	process_control_block->fd[file_num].fop_ptr.close = close_dir;
+	process_control_block->fd[file_num].fop_ptr.open = open_dir;
 	process_control_block->fd[file_num].flags = IN_USE;
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = &index_node[file.inode_num];

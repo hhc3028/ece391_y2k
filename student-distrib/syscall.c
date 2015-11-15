@@ -209,7 +209,7 @@ int32_t open(const uint8_t* filename){
 	if(strncmp((const int8_t*)filename, "stdin", 5)) {
 		if(process_control_block->filenames[0] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
-			process_control_block->fd[0].fop_ptr.read = (int32_t*)terminal_read;
+			process_control_block->fd[0].fop_ptr.read = terminal_read;
 			process_control_block->fd[0].fop_ptr.write = NULL;
 			process_control_block->fd[0].fop_ptr.close = NULL;
 			process_control_block->fd[0].fop_ptr.open = NULL;
@@ -228,7 +228,7 @@ int32_t open(const uint8_t* filename){
 		if(process_control_block->filenames[1] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
-			process_control_block->fd[1].fop_ptr.write = (int32_t*)terminal_write;
+			process_control_block->fd[1].fop_ptr.write = terminal_write;
 			process_control_block->fd[1].fop_ptr.close = NULL;
 			process_control_block->fd[1].fop_ptr.open = NULL;
 			process_control_block->fd[1].flags = IN_USE;
