@@ -163,12 +163,15 @@ typedef struct boot_block				// struct for the first block in memory
 } boot_block_t;
 
 //according to section 7.2 File System Abstraction 
+/* Function Pointer type for function calls */
+typedef int32_t (*funcptr)();
+
 /* Structure for system call */
 typedef struct fop_t {
-	int32_t * read;
-	int32_t * write;
-	int32_t * open;
-	int32_t * close;
+	funcptr read;
+	funcptr write;
+	funcptr open;
+	funcptr close;
 } fop_t;
 
 typedef struct file_descriptor_t {

@@ -12,12 +12,15 @@
 #include "interrupt.h"
 #include "file_system.h"
 
+/* Artificial IRET */
+extern uint32_t to_user_space(uint32_t entry_point);
+
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0;
 
 /* System call for halt */
 int32_t halt(uint8_t status) {
-
+	return 0;
 }
 
 /*
@@ -92,7 +95,7 @@ int32_t execute(const uint8_t * command)
 	
 	//read the first 4 bytes of the file to check if it's executable or not
 	//and store in buffer
-	if(filesystem_read(*fname, 0, buffer, 4) != 0)
+	if(read_file(*fname, 0, buffer, 4) != 0)
 	{
 		return -1;
 	}
@@ -107,7 +110,7 @@ int32_t execute(const uint8_t * command)
 	/* check for open slot for process?*/
 
 	//instruction start at byte 24-27
-	if(filesystem_read(*fname, instruction_offset, buffer, 4) != 0)
+	if(read_file(*fname, instruction_offset, buffer, 4) != 0)
 	{
 		return -1;
 	}
@@ -153,9 +156,9 @@ int32_t execute(const uint8_t * command)
 	//initialize the file descritor in PCB
 	for(i = 0; i < 8; i++)
 	{
-		process_control_block->fd[i].inode = NULL;
-		process_control_block->fd[i].flag = NOT_IN_USE;
-		process_control_block->fd[i].fileposition = 0;
+		process_control_block->fd[i].inode_ptr = NULL;
+		process_control_block->fd[i].flags = NOT_IN_USE;
+		process_control_block->fd[i].file_position = 0;
 		process_control_block->fd[i].fop_ptr.read = NULL;
 		process_control_block->fd[i].fop_ptr.write = NULL;
 		process_control_block->fd[i].fop_ptr.close = NULL;
@@ -197,13 +200,13 @@ int32_t open(const uint8_t* filename){
 	int32_t i = 0;
 
 	/* Check if we have any free file descriptors */
-	while(process_control_block.fd[i] & IN_USE) {
+	while(process_control_block->fd[i].flags & IN_USE) {
 		if(i >= 8) {
 			return -1;
 		}
 	}
 
-	if(filename == "stdin") {
+	if(strncmp((const int8_t*)filename, "stdin", 5)) {
 		if(process_control_block->filenames[0] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = (int32_t*)terminal_read;
@@ -211,8 +214,8 @@ int32_t open(const uint8_t* filename){
 			process_control_block->fd[0].fop_ptr.close = NULL;
 			process_control_block->fd[0].fop_ptr.open = NULL;
 			process_control_block->fd[0].flags = IN_USE;
-			process_control_block->fd[0].fileposition = 0;
-			process_control_block->fd[0].inode = NULL;
+			process_control_block->fd[0].file_position = 0;
+			process_control_block->fd[0].inode_ptr = NULL;
 			process_control_block->file_type[0] = 3;
 			return 0;
 		}
@@ -221,7 +224,7 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
-	if(filename == "stdout") {
+	if(strncmp((const int8_t*)filename,"stdout", 6)) {
 		if(process_control_block->filenames[1] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
@@ -229,8 +232,8 @@ int32_t open(const uint8_t* filename){
 			process_control_block->fd[1].fop_ptr.close = NULL;
 			process_control_block->fd[1].fop_ptr.open = NULL;
 			process_control_block->fd[1].flags = IN_USE;
-			process_control_block->fd[1].fileposition = 0;
-			process_control_block->fd[1].inode = NULL;
+			process_control_block->fd[1].file_position = 0;
+			process_control_block->fd[1].inode_ptr = NULL;
 			process_control_block->file_type[1] = 4;
 			return 0;
 		}
@@ -276,10 +279,10 @@ int32_t close(int32_t fd) {
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
-	if(!(process_control_block.fd[fd] & IN_USE)) {
+	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block.fd[fd].fop_ptr.close == NULL) {
+	if(process_control_block->fd[fd].fop_ptr.close == NULL) {
 		return -1;
 	}
 	/* Call the close function for the file entry */
@@ -300,10 +303,10 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
-	if(!(process_control_block.fd[fd] & IN_USE)) {
+	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block.fd[fd].fop_ptr.read == NULL) {
+	if(process_control_block->fd[fd].fop_ptr.read == NULL) {
 		return -1;
 	}
 
@@ -339,10 +342,10 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
-	if(!(process_control_block.fd[fd] & IN_USE)) {
+	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block.fd[fd].fop_ptr.write == NULL) {
+	if(process_control_block->fd[fd].fop_ptr.write == NULL) {
 		return -1;
 	}
 
