@@ -18,11 +18,6 @@ extern uint32_t to_user_space(uint32_t entry_point);
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0;
 
-/* System call for halt */
-int32_t halt(uint8_t status) {
-	return 0;
-}
-
 /*
  *execute()
  *this system call attempts to load and execute a new program, handing off the processor to the new
@@ -47,6 +42,7 @@ int32_t execute(const uint8_t * command)
 	uint32_t i;
 	uint32_t entry_point = 0;
 	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
+	uint8_t open_process;
 	uint32_t first_space_reached;
 	uint32_t length_of_fname;
 	uint8_t arg_buffer[buf_max];
@@ -95,7 +91,7 @@ int32_t execute(const uint8_t * command)
 	
 	//read the first 4 bytes of the file to check if it's executable or not
 	//and store in buffer
-	if(read_file(*fname, 0, buffer, 4) != 0)
+	if(filesystem_read(*fname, 0, buffer, 4) != 0)
 	{
 		return -1;
 	}
@@ -110,7 +106,7 @@ int32_t execute(const uint8_t * command)
 	/* check for open slot for process?*/
 
 	//instruction start at byte 24-27
-	if(read_file(*fname, instruction_offset, buffer, 4) != 0)
+	if(filesystem_read(*fname, instruction_offset, buffer, 4) != 0)
 	{
 		return -1;
 	}
@@ -156,13 +152,9 @@ int32_t execute(const uint8_t * command)
 	//initialize the file descritor in PCB
 	for(i = 0; i < 8; i++)
 	{
-		process_control_block->fd[i].inode_ptr = NULL;
-		process_control_block->fd[i].flags = NOT_IN_USE;
-		process_control_block->fd[i].file_position = 0;
-		process_control_block->fd[i].fop_ptr.read = NULL;
-		process_control_block->fd[i].fop_ptr.write = NULL;
-		process_control_block->fd[i].fop_ptr.close = NULL;
-		process_control_block->fd[i].fop_ptr.open = NULL;
+		process_control_block->fd[i].inode = 0;
+		process_control_block->fd[i].flag = NOT_IN_USE;
+		process_control_block->fd[i].fileposition = 0;
 	}
 
 	//store exxtra arg into pcb buffer for arg
@@ -185,6 +177,75 @@ int32_t execute(const uint8_t * command)
 
 }
 
+
+/*
+ *halt()
+ *
+ *this system call terminates a process, returning the specified value to its parent process.
+ *We do this by switching back to the parent's kernel stack via PCB information 
+ *
+ *input: status of process we want to terminate
+ *output: status of terminated process
+ *
+ *
+ */
+
+
+
+int32_t halt(uint8_t status)
+{
+	int i;
+
+	//get the PCB
+	pcb_t * process_control_block = (pcb_t *)(kernel_stack_bottom & offset);
+
+	//if the user try to close the only shell being operated on then stop them
+	//we can either reset the shell (get the entry point and jump to it) or we can ignore it
+	//for now we ignore it
+	if(process_control_block->parent_process_number == 0)
+	{
+		return -1;
+		break;
+	}
+
+
+
+	//set the current process to 0 to mark it done so other process can take this slot
+
+
+	//set parent process to has no child
+	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
+	parent_pcb->has_child = 0;
+
+
+	//load page directory of parent
+
+
+	//set kernel stack bottom and tss to parent's kernel stack
+
+
+	//status will be lost when we switch stack so push it onto parent stack
+	//set ebp and esp to parent's stack
+	uint32_t temp_status = status;
+	asm volatile("movl process_control_block->parent_ksp, %%esp");
+	asm volatile("pushl %temp_status");
+	asm volatile("movl process_control_block->parent_kbp, %%ebp");
+
+	//return status
+	asm volatile("popl %eax");
+
+	asm volatile("leave");
+	asm volatile("ret");
+
+	return 0;
+
+
+
+
+}
+
+
+		
 
 /**
  *	Description: open: system_call for open
