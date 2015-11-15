@@ -158,4 +158,71 @@ int32_t execute(const uint8_t * command)
 }
 
 
-			
+/*
+ *halt()
+ *
+ *this system call terminates a process, returning the specified value to its parent process.
+ *We do this by switching back to the parent's kernel stack via PCB information 
+ *
+ *input: status of process we want to terminate
+ *output: status of terminated process
+ *
+ *
+ */
+
+
+
+int32_t halt(uint8_t status)
+{
+	int i;
+
+	//get the PCB
+	pcb_t * process_control_block = (pcb_t *)(kernel_stack_bottom & offset);
+
+	//if the user try to close the only shell being operated on then stop them
+	//we can either reset the shell (get the entry point and jump to it) or we can ignore it
+	//for now we ignore it
+	if(process_control_block->parent_process_number == 0)
+	{
+		return -1;
+		break;
+	}
+
+
+
+	//set the current process to 0 to mark it done so other process can take this slot
+
+
+	//set parent process to has no child
+	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
+	parent_pcb->has_child = 0;
+
+
+	//load page directory of parent
+
+
+	//set kernel stack bottom and tss to parent's kernel stack
+
+
+	//status will be lost when we switch stack so push it onto parent stack
+	//set ebp and esp to parent's stack
+	uint32_t temp_status = status;
+	asm volatile("movl process_control_block->parent_ksp, %%esp");
+	asm volatile("pushl %temp_status");
+	asm volatile("movl process_control_block->parent_kbp, %%ebp");
+
+	//return status
+	asm volatile("popl %eax");
+
+	asm volatile("leave");
+	asm volatile("ret");
+
+	return 0;
+
+
+
+
+}
+
+
+				
