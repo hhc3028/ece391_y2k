@@ -377,33 +377,3 @@ done:
 	iret
 operations:
 	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
-
-to_user_space:
-
-	cli
-	
-	movl 4(%esp),%ebx 		# Extended Instruction Pointer -> ebx
-
-	movl $USER_DS, %eax 	# Load segement selectors
-	movw %ax, %gs 
-	movw %ax, %fs  
-	movw %ax, %ds 
-	movw %ax, %es
-
-	pushl %eax              # push the USER_DS to the top of the stack
-
-	pushl $USER_ESP 		# push the User Space Extended Stack Pointer to the top of the stack
-
-	pushf 					# push the flags to the stack
-	popl %eax 				# pull them back down to...
-	orl $MASK, %eax 		# be altered appropriately
-	pushl %eax 				# push the altered flags back onto the stack
-	pushl $USER_CS 			# push the USER_CS to the top of the stack
-	pushl %ebx 				# push the Extended Instruction Pointer to the top of the stack
-
-	iret					#Return from interruption
-
-USER_ESP:
-	.long $0x83FFFF0
-MASK:
-	.word $0x4200

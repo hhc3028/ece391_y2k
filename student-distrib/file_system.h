@@ -2,6 +2,7 @@
 #define _FILESYSTEM_H
 
 #include "types.h"
+#include "x86_desc.h"
 
 /* Magic Number Handler */
 #define NAME_SIZE 		32		// the total size of a name
@@ -20,35 +21,6 @@
 #define TYPE_DIR		1		// ignore index node
 #define TYPE_REGULAR	2		// index node is only meaningful for regular files
 
-/* The structs for the File System types */
-typedef struct dentries 							// struct for rest of dir. entries
-{
-	uint8_t file_name[NAME_SIZE];					// file name (32B)
-	uint32_t file_type;								// file type (4B)
-	uint32_t inode_num;								// inode #
-	uint8_t dentry_reserved[DENTRY_RESERVE];		// 24B reserved
-} dentries_t;
-
-typedef struct inodes 					// struct for index nodes
-{
-	uint32_t length_B;					// length in B
-	uint32_t dblock[PAGE_SIZE];				// the total size of datablock for inode
-} inodes_t;
-
-typedef struct data_block 				// struct for the data block
-{
-	uint8_t data_nodes[FOUR_KB_SIZE];	// total size of the data blocks
-} data_block_t;
-
-typedef struct boot_block				// struct for the first block in memory
-{
-	uint32_t num_dentries;				// # of dir. entries
-	uint32_t num_inodes;				// # of inodes(N)
-	uint32_t num_dataBlocks;			// # of data blocks (D)
-	uint8_t bb_reserved[BB_RESERVE];	// the 52B reserved
-	dentries_t dentries[NUM_OF_DENTRY];	// 64B dir. entries
-} boot_block_t;
-
 /* Initializing the File System in memory */
 void init_file_systems(uint32_t address);
 
@@ -58,16 +30,16 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry);
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
 /* File Operations */
-int32_t open_file(void);
+int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file);
 int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length);
 int32_t write_file(void);
-int32_t close_file(void);
+int32_t close_file(pcb_t * process_control_block, int32_t file_num);
 
 /*Directory Operations */
-int32_t open_dir(void);
+int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t file);
 int32_t read_dir(uint8_t* buf);
 int32_t write_dir(void);
-int32_t close_dir(void);
+int32_t close_dir(pcb_t * process_control_block, int32_t file_num);
 
 /* Function to test File Systems */
 extern void test_file_systems(const uint8_t* fname);

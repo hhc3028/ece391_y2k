@@ -124,6 +124,74 @@ extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
 extern tss_t tss;
 
+/* Magic Number Handler */
+#define NAME_SIZE 		32		// the total size of a name
+#define BB_RESERVE		52		// the 52B reserved space in the boto block
+#define DENTRY_RESERVE	24		// the 24B reserved space in the dir. entry
+#define FOUR_KB_SIZE	4096	// 4kB
+#define NUM_OF_DENTRY	63		// there are 63 dir. entries stored in boot block
+#define PAGE_SIZE		1023
+#define BIG_BUF_SIZE	6000
+
+/* The structs for the File System types */
+typedef struct dentries 							// struct for rest of dir. entries
+{
+	int8_t file_name[NAME_SIZE];					// file name (32B)
+	uint32_t file_type;								// file type (4B)
+	uint32_t inode_num;								// inode #
+	uint8_t dentry_reserved[DENTRY_RESERVE];		// 24B reserved
+} dentries_t;
+
+typedef struct inodes 					// struct for index nodes
+{
+	uint32_t length_B;					// length in B
+	uint32_t dblock[PAGE_SIZE];				// the total size of datablock for inode
+} inodes_t;
+
+typedef struct data_block 				// struct for the data block
+{
+	uint8_t data_nodes[FOUR_KB_SIZE];	// total size of the data blocks
+} data_block_t;
+
+typedef struct boot_block				// struct for the first block in memory
+{
+	uint32_t num_dentries;				// # of dir. entries
+	uint32_t num_inodes;				// # of inodes(N)
+	uint32_t num_dataBlocks;			// # of data blocks (D)
+	uint8_t bb_reserved[BB_RESERVE];	// the 52B reserved
+	dentries_t dentries[NUM_OF_DENTRY];	// 64B dir. entries
+} boot_block_t;
+
+//according to section 7.2 File System Abstraction 
+/* Structure for system call */
+typedef struct fop_t {
+	int32_t * read;
+	int32_t * write;
+	int32_t * open;
+	int32_t * close;
+} fop_t;
+
+typedef struct file_descriptor_t {
+	fop_t fop_ptr;
+	inodes_t * inode_ptr;
+	int32_t file_position;
+	int32_t flags;
+} file_descriptor_t;
+
+typedef struct pcb_t {
+	file_descriptor_t fd[8];
+	int8_t filenames[8][32];
+	int32_t file_type[8];
+	uint32_t parent_kbp;
+	uint32_t parent_ksp;
+	uint8_t process_number;
+	uint8_t parent_process_number;
+	uint8_t arg_buf[100];
+	uint32_t has_child;
+	uint32_t kbp_before_change;
+	uint32_t ksp_before_change;
+} pcb_t;
+
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim) \
 do { \

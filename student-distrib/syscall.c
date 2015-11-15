@@ -5,12 +5,12 @@
 #include "syscall.h"
 /* Include these headers for interrupts and printing */
 #include "lib.h"
-#include "i8259.h"
 #include "rtc.h"
 /* We use the SET_ENTRY macro from here and some constants*/
 #include "x86_desc.h"
 #include "keyboard.h"
 #include "interrupt.h"
+#include "file_system.h"
 
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0;
