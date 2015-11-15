@@ -7,6 +7,9 @@
 #define table_size		1024
 #define enable_present	0x01
 #define enable_write	0x02
+#define enable_user		0x04
+#define	enable_through	0x08
+#define	disable_cache	0x10
 #define enable_4MB		0x80
 #define enable_global	0x100
 
@@ -15,6 +18,8 @@
 
 // function to initalize paging, used only once
 void initialize_paging(void);
+// function initializes a page directory for a new task
+uint32_t new_page_dirct(uint8_t process_number);
 
 // assembly function to enable paging
 void enable_paging(void);

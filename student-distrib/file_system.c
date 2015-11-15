@@ -2,6 +2,7 @@
 
 #include "file_system.h"
 #include "lib.h"
+#include "syscall.h"
 
 uint32_t boot_block_addr;					// stores the address of the boot block
 
@@ -91,7 +92,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 	}
 
 
-	return -1;										// return on failure (-1)
+	return FAIL;										// return on failure (-1)
 }
 
 /*
@@ -270,8 +271,17 @@ void test_file_systems(const uint8_t* fname)
 
 /* File Operations */
 
-int32_t open_file()
+int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file)
 {
+	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
+	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)read_file;
+	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)write_file;
+	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)close_file;
+	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)open_file;
+	process_control_block->fd[file_num].flags = IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = &index_node[file.inode_num];
+	process_control_block->file_type[file_num] = 2;
 	return 0;
 }
 
@@ -322,14 +332,32 @@ int32_t write_file()
 	return -1;
 }
 
-int32_t close_file()
+int32_t close_file(pcb_t * process_control_block, int32_t file_num)
 {
+	strcpy((int8_t*)process_control_block->filenames[file_num], NULL);
+	process_control_block->fd[file_num].fop_ptr.read = NULL;
+	process_control_block->fd[file_num].fop_ptr.write = NULL;
+	process_control_block->fd[file_num].fop_ptr.close = NULL;
+	process_control_block->fd[file_num].fop_ptr.open = NULL;
+	process_control_block->fd[file_num].flags = NOT_IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->file_type[file_num] = -1;
 	return 0;
 }
 
 /* Directory Operations */
-int32_t open_dir(void)
+int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t file)
 {
+	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
+	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)read_dir;
+	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)write_dir;
+	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)close_dir;
+	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)open_dir;
+	process_control_block->fd[file_num].flags = IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = &index_node[file.inode_num];
+	process_control_block->file_type[file_num] = 1;
 	return 0;
 }
 
@@ -360,9 +388,17 @@ int32_t write_dir(void)
 	return -1;
 }
 
-int32_t close_dir(void)
+int32_t close_dir(pcb_t * process_control_block, int32_t file_num)
 {
-	return 0;
+	strcpy((int8_t*)process_control_block->filenames[file_num], NULL);
+	process_control_block->fd[file_num].fop_ptr.read = NULL;
+	process_control_block->fd[file_num].fop_ptr.write = NULL;
+	process_control_block->fd[file_num].fop_ptr.close = NULL;
+	process_control_block->fd[file_num].fop_ptr.open = NULL;
+	process_control_block->fd[file_num].flags = NOT_IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->file_type[file_num] = -1;
 }
 
 

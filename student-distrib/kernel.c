@@ -11,6 +11,7 @@
 #include "paging.h"
 #include "keyboard.h"
 #include "file_system.h"
+#include "syscall.h"
 
 /* ADDED */
 /* Include to deal with idt initialization */

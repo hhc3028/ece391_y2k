@@ -4,6 +4,7 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "lib.h"
+#include "syscall.h"
 
 //flag to indicate interrupt occured for RTC
 volatile int interrupt_flag = 0;
@@ -118,7 +119,6 @@ uint32_t rtc_read(void)
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
 
-
 	interrupt_flag = 0;								//clear flag and return 0
 
 	return 0;
@@ -170,8 +170,17 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
  * Retvals: 0
  */
 
-uint32_t rtc_open(void)
+uint32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
 {
+	strcpy((int8_t*)process_control_block->filenames[file_num], "rtc");
+	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)rtc_read;
+	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)rtc_write;
+	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)rtc_close;
+	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)rtc_open;
+	process_control_block->fd[file_num].flags = IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->file_type[file_num] = 0;
 	return 0;
 }
 
@@ -183,9 +192,17 @@ uint32_t rtc_open(void)
  * Inputs: none
  * Retvals: 0 
  */
-uint32_t rtc_close(void)
+uint32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
 {
-	return 0;
+	strcpy((int8_t*)process_control_block->filenames[file_num], NULL);
+	process_control_block->fd[file_num].fop_ptr.read = NULL;
+	process_control_block->fd[file_num].fop_ptr.write = NULL;
+	process_control_block->fd[file_num].fop_ptr.close = NULL;
+	process_control_block->fd[file_num].fop_ptr.open = NULL;
+	process_control_block->fd[file_num].flags = NOT_IN_USE;
+	process_control_block->fd[file_num].fileposition = 0;
+	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->file_type[file_num] = -1;
 }
 /*
 This helper function return a flag indicate if the given number is power of 2.

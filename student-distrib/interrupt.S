@@ -358,10 +358,22 @@ exception_reserved_wrapper:
 
 # Assembly linkage for the system call handler
 sys_call_handler:
+	pushl	%ebp
+	pushl	%edi
+	pushl	%esi
+	pushl	%edx
+	pushl	%ecx
+	pushl	%ebx
 	cmpl	$9, %eax
 	ja		done
-	jmp		*operations(, %eax, 4)
+	call	*operations(, %eax, 4)
 done:
-	ret
+	popl	%ebx
+	popl	%ecx
+	popl	%edx
+	popl	%esi
+	popl	%edi
+	popl	%ebp
+	iret
 operations:
-#	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
