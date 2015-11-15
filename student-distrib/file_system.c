@@ -2,7 +2,6 @@
 
 #include "file_system.h"
 #include "lib.h"
-#include "syscall.h"
 #include "x86_desc.h"
 
 uint32_t boot_block_addr;					// stores the address of the boot block

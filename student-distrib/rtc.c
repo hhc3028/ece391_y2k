@@ -5,6 +5,7 @@
 #include "i8259.h"
 #include "lib.h"
 #include "syscall.h"
+#include "x86_desc.h"
 
 //flag to indicate interrupt occured for RTC
 volatile int interrupt_flag = 0;
@@ -178,8 +179,8 @@ uint32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
 	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)rtc_close;
 	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)rtc_open;
 	process_control_block->fd[file_num].flags = IN_USE;
-	process_control_block->fd[file_num].fileposition = 0;
-	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->fd[file_num].file_position = 0;
+	process_control_block->fd[file_num].inode_ptr = NULL;
 	process_control_block->file_type[file_num] = 0;
 	return 0;
 }
@@ -200,8 +201,8 @@ uint32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
 	process_control_block->fd[file_num].fop_ptr.close = NULL;
 	process_control_block->fd[file_num].fop_ptr.open = NULL;
 	process_control_block->fd[file_num].flags = NOT_IN_USE;
-	process_control_block->fd[file_num].fileposition = 0;
-	process_control_block->fd[file_num].inode = NULL;
+	process_control_block->fd[file_num].file_position = 0;
+	process_control_block->fd[file_num].inode_ptr = NULL;
 	process_control_block->file_type[file_num] = -1;
 }
 /*

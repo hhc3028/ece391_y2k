@@ -15,6 +15,8 @@
 #define INCR_ONE		1
 #define SUCCESS			0
 #define FAIL			-1
+#define NOT_IN_USE	0x00000000
+#define IN_USE		0x00000001
 
 /* FILE TYPES */
 #define TYPE_RTC		0		// ignore index node
@@ -40,9 +42,6 @@ int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t fil
 int32_t read_dir(uint8_t* buf);
 int32_t write_dir(void);
 int32_t close_dir(pcb_t * process_control_block, int32_t file_num);
-
-/* Function to test File Systems */
-extern void test_file_systems(const uint8_t* fname);
 
 #endif 	/* _FILESYSTEM_H */
 

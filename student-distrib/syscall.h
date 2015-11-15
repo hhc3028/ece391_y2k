@@ -5,10 +5,10 @@
 
 #define instruction_offset 24
 #define process_ld_addr 0x08048000
-#define _4KB       	0x1000
+#define _4KB       	0x00001000
 #define _4MB       	0x00400000
 #define _8MB       	0x00800000
-#define _8KB       	0x2000
+#define _8KB       	0x00002000
 #define offset 	   	0xFFFFE000
 #define NOT_IN_USE	0x00000000
 #define IN_USE		0x00000001

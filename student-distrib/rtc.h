@@ -2,6 +2,7 @@
 #define _RTC_H
 
 #include "types.h"
+#include "x86_desc.h"
 
 
 // the two IO ports for the RTC
@@ -25,8 +26,8 @@ void rtc_int_handler(void);
 //system call for rtc
 uint32_t rtc_read(void); 
 int32_t rtc_write(int32_t * set_freq, int32_t nbytes);
-uint32_t rtc_open(void);
-uint32_t rtc_close(void);
+uint32_t rtc_open(pcb_t * process_control_block, int32_t file_num);
+uint32_t rtc_close(pcb_t * process_control_block, int32_t file_num);
 
 //helper function to determine if x is power of 2
 int isPowerOfTwo (int32_t x);
