@@ -377,3 +377,40 @@ done:
 	iret
 operations:
 	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+
+#
+#	return_to_user
+#	DESCRIPTION:	prep the stack for User
+#	INPUT:			new_eip - the new eip to add onto the stack
+#	OUTPUT:			NONE
+#	RETURN VALUE:	NONE
+#	SIDE EFFECT:	Setting up the stack for User
+#
+#---------- STACK ----------#
+#	TOP:
+#	EIP
+#	USER_CS
+# 	EFLAGS
+# 	USER_DS
+return_to_user:
+		cli							# mask the interrupts
+		movl	4(%esp),	%ebx	# store the EIP into EBX, EBX = EIP
+
+		movl 	$USER_DS,	%eax	# load the segment selectors
+		
+		movw	%ax,		%ds 	# load the DS with the correct DS (from User)
+		movw	%ax, 		%es 	# load the other segment registers
+		movw	%ax, 		%fs
+		movw	%ax, 		%gs
+
+		pushl 	%eax				# push the User_DS to the top of the stack
+
+		pushl 	%esp				# push the current stack pointer
+
+		pushf						# push the flags back to the stack
+
+		pushl 	$USER_CS			# push the USER_CS to the top of the stack	
+		pushl 	%ebx 				# push the EIP onto the stack
+
+		iret						# return from the interrupt
+		
