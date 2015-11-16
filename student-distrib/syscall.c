@@ -268,7 +268,7 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
-	if(strncmp((const int8_t*)filename, "stdin", 5) != 0) {
+	if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
 		if(process_control_block->filenames[0] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = terminal_read;
@@ -286,7 +286,7 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
-	if(strncmp((const int8_t*)filename,"stdout", 6) != 0) {
+	if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
 		if(process_control_block->filenames[1] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
