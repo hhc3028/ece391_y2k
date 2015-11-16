@@ -187,12 +187,14 @@ typedef struct pcb_t {
 	int32_t file_type[8];
 	uint32_t parent_kbp;
 	uint32_t parent_ksp;
+	uint32_t parent_ss;
 	uint8_t process_number;
 	uint8_t parent_process_number;
 	uint8_t arg_buf[100];
 	uint32_t has_child;
-	uint32_t kbp_before_change;
-	uint32_t ksp_before_change;
+	uint32_t ebp;
+	uint32_t esp;
+	uint32_t ss;
 } pcb_t;
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */

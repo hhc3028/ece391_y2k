@@ -217,12 +217,20 @@ void exception_stack() {
 
 /* Handler for the general fault protection exception. */
 void exception_GPF() {
+	int32_t error;
+	asm volatile (
+		"movl %%eax, %0"
+            : "=g" (error)
+            : /* no inputs */
+            : "eax"
+    );
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
 	//{*(uint8_t *)(video_mem + (i << 1) + 1) = 0xDF;}
 	/* Print out the error message for the exception */
 	printf("General fault protection exception occured.\n");
+	printf("%x selector accessed\n", error);
 	while(1);
 }
 

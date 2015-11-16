@@ -143,7 +143,7 @@ int32_t execute(const uint8_t * command)
 	if(open_process == 0)
 	{
 		process_control_block->parent_process_number = 0;
-		process_control_block->process_number = 1;
+		process_control_block->process_number = 0;
 	}
 
 	else
@@ -169,8 +169,17 @@ int32_t execute(const uint8_t * command)
 	strcpy((int8_t*)process_control_block->arg_buf, (const int8_t*)arg_buffer);
 
 	//set kernel stack bottom and tss.esp0 to bottom of new kernel stack
+	tss_t * task_segment = (tss_t*)KERNEL_TSS;
+	uint32_t temp_ebp, temp_esp, temp_ss;
+	temp_ebp = task_segment->ebp;
+	temp_ss = task_segment->ss;
+	temp_esp = task_segment->esp;
+	task_segment->esp0 = (_8MB - (_8KB)*(open_process) - 1);
+	task_segment->ss0 = KERNEL_DS;
 
-
+	process_control_block->ebp = temp_ebp;
+	process_control_block->esp = temp_esp;
+	process_control_block->ss = temp_ss;
 
 	//initialize stdin and stdout
 	open((uint8_t *) "stdin");
@@ -266,10 +275,11 @@ int32_t open(const uint8_t* filename){
 		if(i >= 8) {
 			return -1;
 		}
+		i++;
 	}
 
 	if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
-		if(process_control_block->filenames[0] == NULL) {
+		if(!(process_control_block->fd[0].flags & IN_USE)) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = terminal_read;
 			process_control_block->fd[0].fop_ptr.write = NULL;
@@ -287,7 +297,7 @@ int32_t open(const uint8_t* filename){
 	}
 
 	if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
-		if(process_control_block->filenames[1] == NULL) {
+		if(!(process_control_block->fd[1].flags & IN_USE)) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
 			process_control_block->fd[1].fop_ptr.write = terminal_write;

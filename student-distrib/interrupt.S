@@ -404,18 +404,22 @@ return_to_user:
 
 		movl 	$USER_DS,	%eax	# load the segment selectors
 		
-		movw	%ax,		%ds 	# load the DS with the correct DS (from User)
-		movw	%ax, 		%es 	# load the other segment registers
-		movw	%ax, 		%fs
-		movw	%ax, 		%gs
+		movw	(%eax),		%ds 	# load the DS with the correct DS (from User)
+		movw	(%eax), 	%es 	# load the other segment registers
+		movw	(%eax), 	%fs
+		movw	(%eax), 	%gs
 
-		pushl 	%eax				# push the User_DS to the top of the stack
+		pushl 	(%eax)				# push the User_DS to the top of the stack
 
-		pushl 	%esp				# push the current stack pointer
+		pushl 	$0x83FFFF0				# push the current stack pointer
 
-		pushf						# push the flags back to the stack
+		pushfl						# push the flags back to the stack
+		popl	%eax 				# pull them back down to...
+		orl		$0x4200, %eax 		# be altered appropriately
+		pushl	%eax
 
-		pushl 	$USER_CS			# push the USER_CS to the top of the stack	
+		movl	$USER_CS,	%eax
+		pushl 	(%eax)				# push the USER_CS to the top of the stack	
 		pushl 	%ebx 				# push the EIP onto the stack
 
 		iret						# return from the interrupt
