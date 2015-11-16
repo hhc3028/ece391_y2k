@@ -105,6 +105,9 @@ int32_t execute(const uint8_t * command)
 		return -1;
 	}
 
+	/*set up page directory? */
+	new_page_dirct(open_process);
+	flush_tlb();
 
 	/* check for open slot for process?*/
 
@@ -119,13 +122,6 @@ int32_t execute(const uint8_t * command)
 	{
 		entry_point = (entry_point | (buffer[i] << 8*i));
 	}
-
-
-	/*set up page directory? */
-	uint32_t page_direct = new_page_dirct(open_process);
-
-	/* Load the page directory and flush TLB */
-	load_paging_dirct(page_direct);
 
 	//load process to the starting address
 	filesystem_load(fname, process_ld_addr);
@@ -169,24 +165,32 @@ int32_t execute(const uint8_t * command)
 	strcpy((int8_t*)process_control_block->arg_buf, (const int8_t*)arg_buffer);
 
 	//set kernel stack bottom and tss.esp0 to bottom of new kernel stack
-	tss_t * task_segment = (tss_t*)KERNEL_TSS;
-	uint32_t temp_ebp, temp_esp, temp_ss;
-	temp_ebp = task_segment->ebp;
-	temp_ss = task_segment->ss;
-	temp_esp = task_segment->esp;
-	task_segment->esp0 = (_8MB - (_8KB)*(open_process) - 1);
-	task_segment->ss0 = KERNEL_DS;
+	uint32_t temp_ebp, temp_esp;
+	temp_ebp = tss.ebp;
+	temp_esp = tss.esp;
+	tss.esp0 = (_8MB - (_8KB)*(open_process) - 4);
 
 	process_control_block->ebp = temp_ebp;
 	process_control_block->esp = temp_esp;
-	process_control_block->ss = temp_ss;
-
+	temp_ebp = _8MB;
 	//initialize stdin and stdout
 	open((uint8_t *) "stdin");
 	open((uint8_t *) "stdout");
 
-	//jump to entry point to execute
-	return_to_user(entry_point);
+	asm volatile (
+		"movl	%0, %%ecx					;"
+		"pushl	%%ecx						"
+			:/* no output */
+			:"g" ((temp_ebp))
+			: "ecx");
+
+
+	asm volatile (
+		"movl	%0, %%ebx					;"
+		"jmp	return_to_user				"
+			:/* no output */
+			:"g" ((entry_point))
+			: "ebx");
 
 	return 0;
 }
@@ -283,8 +287,8 @@ int32_t open(const uint8_t* filename){
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = terminal_read;
 			process_control_block->fd[0].fop_ptr.write = NULL;
-			process_control_block->fd[0].fop_ptr.close = NULL;
-			process_control_block->fd[0].fop_ptr.open = NULL;
+			process_control_block->fd[0].fop_ptr.close = terminal_read;
+			process_control_block->fd[0].fop_ptr.open = terminal_read;
 			process_control_block->fd[0].flags = IN_USE;
 			process_control_block->fd[0].file_position = 0;
 			process_control_block->fd[0].inode_ptr = NULL;
@@ -301,8 +305,8 @@ int32_t open(const uint8_t* filename){
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
 			process_control_block->fd[1].fop_ptr.write = terminal_write;
-			process_control_block->fd[1].fop_ptr.close = NULL;
-			process_control_block->fd[1].fop_ptr.open = NULL;
+			process_control_block->fd[1].fop_ptr.close = terminal_write;
+			process_control_block->fd[1].fop_ptr.open = terminal_write;
 			process_control_block->fd[1].flags = IN_USE;
 			process_control_block->fd[1].file_position = 0;
 			process_control_block->fd[1].inode_ptr = NULL;

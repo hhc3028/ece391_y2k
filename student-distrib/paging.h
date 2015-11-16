@@ -19,11 +19,13 @@
 // function to initalize paging, used only once
 void initialize_paging(void);
 // function initializes a page directory for a new task
-uint32_t new_page_dirct(uint8_t process_number);
+void new_page_dirct(uint8_t process_number);
 
 // assembly function to enable paging
 void enable_paging(void);
 // given the address, load the page directory
 void load_paging_dirct(uint32_t address);
+
+void flush_tlb();
 
 #endif /* _PAGING_H */

@@ -237,6 +237,7 @@ void exception_GPF() {
 /* Handler for the page fault exception. */
 void exception_page() {
 	int32_t error;
+	asm volatile ("movl %cr2, %ebx");
 	asm volatile (
 		"movl %%eax, %0"
             : "=g" (error)

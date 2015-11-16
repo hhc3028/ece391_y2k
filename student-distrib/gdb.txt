@@ -1,0 +1,1453 @@
+A syntax error in expression, near `/i $pc'.
+0x00403f14	184		return_to_user(entry_point);
+0x00403f17	184		return_to_user(entry_point);
+return_to_user () at interrupt.S:402
+402			cli							# mask the interrupts
+Current language:  auto; currently asm
+403			movl	4(%esp),	%ebx	# store the EIP into EBX, EBX = EIP
+405			movl 	$USER_DS,	%eax	# load the segment selectors
+407			movw	(%eax),		%ds 	# load the DS with the correct DS (from User)
+408			movw	(%eax), 	%es 	# load the other segment registers
+409			movw	(%eax), 	%fs
+410			movw	(%eax), 	%gs
+412			pushl 	(%eax)				# push the User_DS to the top of the stack
+return_to_user () at interrupt.S:414
+414			pushl 	$0x83FFFFC			# push the current stack pointer
+return_to_user () at interrupt.S:416
+416			pushfl						# push the flags back to the stack
+return_to_user () at interrupt.S:417
+417			popl	%eax 				# pull them back down to...
+return_to_user () at interrupt.S:418
+418			orl		$0x4200, %eax 		# be altered appropriately
+419			pushl	%eax
+return_to_user () at interrupt.S:421
+421			movl	$USER_CS,	%eax
+422			pushl 	(%eax)				# push the USER_CS to the top of the stack	
+return_to_user () at interrupt.S:423
+423			pushl 	%ebx 				# push the EIP onto the stack
+return_to_user () at interrupt.S:425
+425			iret						# return from the interrupt
+0x7ffe90:	0x080482e8	0x00000023	0x00004206	0x083ffffc
+0x7ffea0:	0x0000002b	0x00403f1c	0x080482e8	0x007ffec0
+0x7ffeb0:	0x007fff44	0x00000004	0x00000000	0x00000000
+0x7ffec0:	0x00000000	0x00000000	0x00000000	0x06c00005
+0x4001f5 <return_to_user+41>:	iret   
+0x080482e8 in ?? ()
+0x80482e8:	call   0x8048094
+0x08048094 in ?? ()
+0x8048094:	lea    0x4(%esp),%ecx
+0x08048098 in ?? ()
+0x8048098:	and    $0xfffffff0,%esp
+0x0804809b in ?? ()
+0x804809b:	pushl  0xfffffffc(%ecx)
+0x0804809e in ?? ()
+0x804809e:	push   %ebp
+0x0804809f in ?? ()
+0x804809f:	mov    %esp,%ebp
+0x080480a1 in ?? ()
+0x80480a1:	push   %ecx
+0x080480a2 in ?? ()
+0x80480a2:	sub    $0x424,%esp
+0x080480a8 in ?? ()
+0x80480a8:	mov    $0x804851c,%eax
+0x080480ad in ?? ()
+0x80480ad:	mov    %eax,0x4(%esp)
+0x080480b1 in ?? ()
+0x80480b1:	movl   $0x1,(%esp)
+Type commands for definition of "iterate".
+End with a line saying just "end".
+0x080480b8 in ?? ()
+0x80480b8:	call   0x8048345
+0x08048345 in ?? ()
+0x8048345:	push   %ebp
+0x08048346 in ?? ()
+0x8048346:	mov    %esp,%ebp
+0x08048348 in ?? ()
+0x8048348:	sub    $0x18,%esp
+0x0804834b in ?? ()
+0x804834b:	mov    0xc(%ebp),%eax
+0x0804834e in ?? ()
+0x804834e:	mov    %eax,(%esp)
+0x08048351 in ?? ()
+0x8048351:	call   0x80482f8
+Already logging to gdb.txt.
+0x8048351:	call   0x80482f8
+0x080482f8 in ?? ()
+0x80482f8:	push   %ebp
+0x080482f9 in ?? ()
+0x80482f9:	mov    %esp,%ebp
+0x080482fb in ?? ()
+0x80482fb:	sub    $0x10,%esp
+0x080482fe in ?? ()
+0x80482fe:	movl   $0x0,0xfffffffc(%ebp)
+0x08048305 in ?? ()
+0x8048305:	jmp    0x804830f
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048319 in ?? ()
+0x8048319:	mov    0xfffffffc(%ebp),%eax
+0x0804831c in ?? ()
+0x804831c:	leave  
+0x0804831d in ?? ()
+0x804831d:	ret    
+0x08048356 in ?? ()
+0x8048356:	mov    %eax,0x8(%esp)
+0x0804835a in ?? ()
+0x804835a:	mov    0xc(%ebp),%eax
+0x0804835d in ?? ()
+0x804835d:	mov    %eax,0x4(%esp)
+0x08048361 in ?? ()
+0x8048361:	mov    0x8(%ebp),%eax
+0x08048364 in ?? ()
+0x8048364:	mov    %eax,(%esp)
+0x08048367 in ?? ()
+0x8048367:	call   0x804824e
+0x0804824e in ?? ()
+0x804824e:	push   %ebx
+0x0804824f in ?? ()
+0x804824f:	mov    $0x4,%eax
+0x08048254 in ?? ()
+0x8048254:	mov    0x8(%esp),%ebx
+0x08048258 in ?? ()
+0x8048258:	mov    0xc(%esp),%ecx
+0x0804825c in ?? ()
+0x804825c:	mov    0x10(%esp),%edx
+0x08048260 in ?? ()
+0x8048260:	int    $0x80
+sys_call_handler () at interrupt.S:368
+368		pushl	%edi
+0x40019c <sys_call_handler+1>:	push   %edi
+369		pushl	%esi
+0x40019d <sys_call_handler+2>:	push   %esi
+370		pushl	%edx
+0x40019e <sys_call_handler+3>:	push   %edx
+371		pushl	%ecx
+0x40019f <sys_call_handler+4>:	push   %ecx
+372		pushl	%ebx
+0x4001a0 <sys_call_handler+5>:	push   %ebx
+373		cmpl	$9, %eax
+0x4001a1 <sys_call_handler+6>:	cmp    $0x9,%eax
+374		ja		done
+0x4001a4 <sys_call_handler+9>:	ja     0x4001ad <done>
+375		call	*operations(, %eax, 4)
+0x4001a6 <sys_call_handler+11>:	call   *0x4001b4(,%eax,4)
+open (filename=0x1 "ÿ") at syscall.c:262
+262	int32_t open(const uint8_t* filename){
+Current language:  auto; currently c
+0x403f48 <open>:	push   %ebp
+0x00403f49	262	int32_t open(const uint8_t* filename){
+0x403f49 <open+1>:	mov    %esp,%ebp
+0x00403f4b	262	int32_t open(const uint8_t* filename){
+0x403f4b <open+3>:	sub    $0xa8,%esp
+264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f51 <open+9>:	movzbl 0x40b004,%eax
+0x00403f58	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f58 <open+16>:	movzbl %al,%eax
+0x00403f5b	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f5b <open+19>:	shl    $0xd,%eax
+0x00403f5e	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f5e <open+22>:	neg    %eax
+0x00403f60	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f60 <open+24>:	add    $0x7fe000,%eax
+0x00403f65	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f65 <open+29>:	mov    %eax,0xfffffff8(%ebp)
+266		int32_t i = 0;
+0x403f68 <open+32>:	movl   $0x0,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f6f <open+39>:	jmp    0x403f87 <open+63>
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+270			if(i >= 8) {
+0x403f71 <open+41>:	cmpl   $0x7,0xfffffffc(%ebp)
+0x00403f75	270			if(i >= 8) {
+0x403f75 <open+45>:	jle    0x403f83 <open+59>
+273			i++;
+0x403f83 <open+59>:	addl   $0x1,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+270			if(i >= 8) {
+0x403f71 <open+41>:	cmpl   $0x7,0xfffffffc(%ebp)
+0x00403f75	270			if(i >= 8) {
+0x403f75 <open+45>:	jle    0x403f83 <open+59>
+273			i++;
+0x403f83 <open+59>:	addl   $0x1,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fab <open+99>:	mov    0x8(%ebp),%eax
+0x00403fae	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fae <open+102>:	movl   $0x5,0x8(%esp)
+0x00403fb6	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fb6 <open+110>:	movl   $0x404c7b,0x4(%esp)
+0x00403fbe	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fbe <open+118>:	mov    %eax,(%esp)
+0x00403fc1	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc1 <open+121>:	call   0x4033ed <strncmp>
+strncmp (s1=0x1 "ÿ", s2=0x404c7b "stdin", n=5) at lib.c:486
+486	{
+0x4033ed <strncmp>:	push   %ebp
+0x004033ee	486	{
+0x4033ee <strncmp+1>:	mov    %esp,%ebp
+0x004033f0	486	{
+0x4033f0 <strncmp+3>:	sub    $0x14,%esp
+488		for(i=0; i<n; i++) {
+0x4033f3 <strncmp+6>:	movl   $0x0,0xfffffffc(%ebp)
+0x004033fa	488		for(i=0; i<n; i++) {
+0x4033fa <strncmp+13>:	jmp    0x403444 <strncmp+87>
+0x00403444	488		for(i=0; i<n; i++) {
+0x403444 <strncmp+87>:	mov    0xfffffffc(%ebp),%eax
+0x00403447	488		for(i=0; i<n; i++) {
+0x403447 <strncmp+90>:	cmp    0x10(%ebp),%eax
+0x0040344a	488		for(i=0; i<n; i++) {
+0x40344a <strncmp+93>:	jb     0x4033fc <strncmp+15>
+489			if( (s1[i] != s2[i]) ||
+0x4033fc <strncmp+15>:	mov    0xfffffffc(%ebp),%eax
+0x004033ff	489			if( (s1[i] != s2[i]) ||
+0x4033ff <strncmp+18>:	add    0x8(%ebp),%eax
+0x00403402	489			if( (s1[i] != s2[i]) ||
+0x403402 <strncmp+21>:	movzbl (%eax),%edx
+0x00403405	489			if( (s1[i] != s2[i]) ||
+0x403405 <strncmp+24>:	mov    0xfffffffc(%ebp),%eax
+0x00403408	489			if( (s1[i] != s2[i]) ||
+0x403408 <strncmp+27>:	add    0xc(%ebp),%eax
+0x0040340b	489			if( (s1[i] != s2[i]) ||
+0x40340b <strncmp+30>:	movzbl (%eax),%eax
+0x0040340e	489			if( (s1[i] != s2[i]) ||
+0x40340e <strncmp+33>:	cmp    %al,%dl
+0x00403410	489			if( (s1[i] != s2[i]) ||
+0x403410 <strncmp+35>:	jne    0x40341f <strncmp+50>
+498				return s1[i] - s2[i];
+0x40341f <strncmp+50>:	mov    0xfffffffc(%ebp),%eax
+0x00403422	498				return s1[i] - s2[i];
+0x403422 <strncmp+53>:	add    0x8(%ebp),%eax
+0x00403425	498				return s1[i] - s2[i];
+0x403425 <strncmp+56>:	movzbl (%eax),%eax
+0x00403428	498				return s1[i] - s2[i];
+0x403428 <strncmp+59>:	movsbl %al,%edx
+0x0040342b	498				return s1[i] - s2[i];
+0x40342b <strncmp+62>:	mov    0xfffffffc(%ebp),%eax
+0x0040342e	498				return s1[i] - s2[i];
+0x40342e <strncmp+65>:	add    0xc(%ebp),%eax
+0x00403431	498				return s1[i] - s2[i];
+0x403431 <strncmp+68>:	movzbl (%eax),%eax
+0x00403434	498				return s1[i] - s2[i];
+0x403434 <strncmp+71>:	movsbl %al,%eax
+0x00403437	498				return s1[i] - s2[i];
+0x403437 <strncmp+74>:	mov    %edx,%ecx
+0x00403439	498				return s1[i] - s2[i];
+0x403439 <strncmp+76>:	sub    %eax,%ecx
+0x0040343b	498				return s1[i] - s2[i];
+0x40343b <strncmp+78>:	mov    %ecx,0xffffffec(%ebp)
+0x0040343e	498				return s1[i] - s2[i];
+0x40343e <strncmp+81>:	jmp    0x403453 <strncmp+102>
+0x00403453	501		return 0;
+0x403453 <strncmp+102>:	mov    0xffffffec(%ebp),%eax
+502	}
+0x403456 <strncmp+105>:	leave  
+0x00403457 in strncmp (s1=0x1 "ÿ", s2=0x804851c "Starting 391 Shell\n", n=19)
+    at lib.c:502
+502	}
+0x403457 <strncmp+106>:	ret    
+0x00403fc6 in open (filename=0x1 "ÿ") at syscall.c:276
+276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc6 <open+126>:	test   %eax,%eax
+0x00403fc8	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc8 <open+128>:	jne    0x40405d <open+277>
+294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x40405d <open+277>:	mov    0x8(%ebp),%eax
+0x00404060	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404060 <open+280>:	movl   $0x6,0x8(%esp)
+0x00404068	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404068 <open+288>:	movl   $0x404c81,0x4(%esp)
+0x00404070	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404070 <open+296>:	mov    %eax,(%esp)
+0x00404073	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404073 <open+299>:	call   0x4033ed <strncmp>
+strncmp (s1=0x1 "ÿ", s2=0x404c81 "stdout", n=6) at lib.c:486
+486	{
+0x4033ed <strncmp>:	push   %ebp
+0x004033ee	486	{
+0x4033ee <strncmp+1>:	mov    %esp,%ebp
+0x004033f0	486	{
+0x4033f0 <strncmp+3>:	sub    $0x14,%esp
+488		for(i=0; i<n; i++) {
+0x4033f3 <strncmp+6>:	movl   $0x0,0xfffffffc(%ebp)
+0x004033fa	488		for(i=0; i<n; i++) {
+0x4033fa <strncmp+13>:	jmp    0x403444 <strncmp+87>
+0x00403444	488		for(i=0; i<n; i++) {
+0x403444 <strncmp+87>:	mov    0xfffffffc(%ebp),%eax
+0x00403447	488		for(i=0; i<n; i++) {
+0x403447 <strncmp+90>:	cmp    0x10(%ebp),%eax
+0x0040344a	488		for(i=0; i<n; i++) {
+0x40344a <strncmp+93>:	jb     0x4033fc <strncmp+15>
+489			if( (s1[i] != s2[i]) ||
+0x4033fc <strncmp+15>:	mov    0xfffffffc(%ebp),%eax
+0x004033ff	489			if( (s1[i] != s2[i]) ||
+0x4033ff <strncmp+18>:	add    0x8(%ebp),%eax
+0x00403402	489			if( (s1[i] != s2[i]) ||
+0x403402 <strncmp+21>:	movzbl (%eax),%edx
+0x00403405	489			if( (s1[i] != s2[i]) ||
+0x403405 <strncmp+24>:	mov    0xfffffffc(%ebp),%eax
+0x00403408	489			if( (s1[i] != s2[i]) ||
+0x403408 <strncmp+27>:	add    0xc(%ebp),%eax
+0x0040340b	489			if( (s1[i] != s2[i]) ||
+0x40340b <strncmp+30>:	movzbl (%eax),%eax
+0x0040340e	489			if( (s1[i] != s2[i]) ||
+0x40340e <strncmp+33>:	cmp    %al,%dl
+0x00403410	489			if( (s1[i] != s2[i]) ||
+0x403410 <strncmp+35>:	jne    0x40341f <strncmp+50>
+498				return s1[i] - s2[i];
+0x40341f <strncmp+50>:	mov    0xfffffffc(%ebp),%eax
+0x00403422	498				return s1[i] - s2[i];
+0x403422 <strncmp+53>:	add    0x8(%ebp),%eax
+0x00403425	498				return s1[i] - s2[i];
+0x403425 <strncmp+56>:	movzbl (%eax),%eax
+0x00403428	498				return s1[i] - s2[i];
+0x403428 <strncmp+59>:	movsbl %al,%edx
+0x0040342b	498				return s1[i] - s2[i];
+0x40342b <strncmp+62>:	mov    0xfffffffc(%ebp),%eax
+0x0040342e	498				return s1[i] - s2[i];
+0x40342e <strncmp+65>:	add    0xc(%ebp),%eax
+0x00403431	498				return s1[i] - s2[i];
+0x403431 <strncmp+68>:	movzbl (%eax),%eax
+0x00403434	498				return s1[i] - s2[i];
+0x403434 <strncmp+71>:	movsbl %al,%eax
+0x00403437	498				return s1[i] - s2[i];
+0x403437 <strncmp+74>:	mov    %edx,%ecx
+0x00403439	498				return s1[i] - s2[i];
+0x403439 <strncmp+76>:	sub    %eax,%ecx
+0x0040343b	498				return s1[i] - s2[i];
+0x40343b <strncmp+78>:	mov    %ecx,0xffffffec(%ebp)
+0x0040343e	498				return s1[i] - s2[i];
+0x40343e <strncmp+81>:	jmp    0x403453 <strncmp+102>
+0x00403453	501		return 0;
+0x403453 <strncmp+102>:	mov    0xffffffec(%ebp),%eax
+502	}
+0x403456 <strncmp+105>:	leave  
+0x00403457 in strncmp (s1=0x1 "ÿ", s2=0x804851c "Starting 391 Shell\n", n=19)
+    at lib.c:502
+502	}
+0x403457 <strncmp+106>:	ret    
+0x00404078 in open (filename=0x1 "ÿ") at syscall.c:294
+294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404078 <open+304>:	test   %eax,%eax
+0x0040407a	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x40407a <open+306>:	jne    0x404113 <open+459>
+314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404113 <open+459>:	lea    0xffffffb8(%ebp),%eax
+0x00404116	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404116 <open+462>:	mov    %eax,0x4(%esp)
+0x0040411a	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x40411a <open+466>:	mov    0x8(%ebp),%eax
+0x0040411d	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x40411d <open+469>:	mov    %eax,(%esp)
+0x00404120	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404120 <open+472>:	call   0x400cd8 <read_dentry_by_name>
+read_dentry_by_name (fname=0x1 "ÿ", dentry=0x7fff80) at file_system.c:195
+195	{
+0x400cd8 <read_dentry_by_name>:	push   %ebp
+0x00400cd9	195	{
+0x400cd9 <read_dentry_by_name+1>:	mov    %esp,%ebp
+0x00400cdb	195	{
+0x400cdb <read_dentry_by_name+3>:	sub    $0x78,%esp
+196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400cde <read_dentry_by_name+6>:	mov    0x8(%ebp),%eax
+0x00400ce1	196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce1 <read_dentry_by_name+9>:	mov    %eax,(%esp)
+0x00400ce4	196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce4 <read_dentry_by_name+12>:	call   0x4032ae <strlen>
+strlen (s=0x1 "ÿ") at lib.c:277
+277	{
+0x4032ae <strlen>:	push   %ebp
+0x004032af	277	{
+0x4032af <strlen+1>:	mov    %esp,%ebp
+0x004032b1	277	{
+0x4032b1 <strlen+3>:	sub    $0x4,%esp
+278		register uint32_t len = 0;
+0x4032b4 <strlen+6>:	movl   $0x0,0xfffffffc(%ebp)
+279		while(s[len] != '\0')
+0x4032bb <strlen+13>:	jmp    0x4032c1 <strlen+19>
+279		while(s[len] != '\0')
+0x4032c1 <strlen+19>:	mov    0xfffffffc(%ebp),%eax
+0x004032c4	279		while(s[len] != '\0')
+0x4032c4 <strlen+22>:	add    0x8(%ebp),%eax
+0x004032c7	279		while(s[len] != '\0')
+0x4032c7 <strlen+25>:	movzbl (%eax),%eax
+0x004032ca	279		while(s[len] != '\0')
+0x4032ca <strlen+28>:	test   %al,%al
+0x004032cc	279		while(s[len] != '\0')
+0x4032cc <strlen+30>:	jne    0x4032bd <strlen+15>
+280			len++;
+0x4032bd <strlen+15>:	addl   $0x1,0xfffffffc(%ebp)
+279		while(s[len] != '\0')
+0x4032c1 <strlen+19>:	mov    0xfffffffc(%ebp),%eax
+0x004032c4	279		while(s[len] != '\0')
+0x4032c4 <strlen+22>:	add    0x8(%ebp),%eax
+0x004032c7	279		while(s[len] != '\0')
+0x4032c7 <strlen+25>:	movzbl (%eax),%eax
+0x004032ca	279		while(s[len] != '\0')
+0x4032ca <strlen+28>:	test   %al,%al
+0x004032cc	279		while(s[len] != '\0')
+0x4032cc <strlen+30>:	jne    0x4032bd <strlen+15>
+282		return len;
+0x4032ce <strlen+32>:	mov    0xfffffffc(%ebp),%eax
+283	}
+0x4032d1 <strlen+35>:	leave  
+0x004032d2 in strlen (s=0x1 "ÿ") at lib.c:283
+283	}
+0x4032d2 <strlen+36>:	ret    
+0x00400ce9 in read_dentry_by_name (fname=0x1 "ÿ", dentry=0x7fff80)
+    at file_system.c:196
+196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce9 <read_dentry_by_name+17>:	mov    %eax,0xffffffe8(%ebp)
+199		if(1 < name_length && name_length < NAME_SIZE)
+0x400cec <read_dentry_by_name+20>:	cmpl   $0x1,0xffffffe8(%ebp)
+0x00400cf0	199		if(1 < name_length && name_length < NAME_SIZE)
+0x400cf0 <read_dentry_by_name+24>:	
+    jbe    0x400de1 <read_dentry_by_name+265>
+231		return FAIL;										// return on failure (-1)
+0x400de1 <read_dentry_by_name+265>:	movl   $0xffffffff,0xffffff9c(%ebp)
+0x00400de8	231		return FAIL;										// return on failure (-1)
+0x400de8 <read_dentry_by_name+272>:	mov    0xffffff9c(%ebp),%eax
+232	}
+0x400deb <read_dentry_by_name+275>:	leave  
+0x00400dec in read_dentry_by_name (fname=0x1 "ÿ", dentry=0x804851c)
+    at file_system.c:232
+232	}
+0x400dec <read_dentry_by_name+276>:	ret    
+0x00404125 in open (filename=0x1 "ÿ") at syscall.c:314
+314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404125 <open+477>:	cmp    $0xffffffff,%eax
+0x00404128	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404128 <open+480>:	jne    0x404136 <open+494>
+315			return -1;
+0x40412a <open+482>:	movl   $0xffffffff,0xffffffa8(%ebp)
+0x00404131	315			return -1;
+0x404131 <open+489>:	jmp    0x404289 <open+833>
+0x00404289	327				return -1;
+0x404289 <open+833>:	mov    0xffffffa8(%ebp),%eax
+329	}
+0x40428c <open+836>:	leave  
+0x0040428d in open (filename=0x1 "ÿ") at syscall.c:329
+329	}
+0x40428d <open+837>:	ret    
+done () at interrupt.S:377
+377		popl	%ebx
+Current language:  auto; currently asm
+0x4001ad <done>:	pop    %ebx
+done () at interrupt.S:378
+378		popl	%ecx
+0x4001ae <done+1>:	pop    %ecx
+done () at interrupt.S:379
+379		popl	%edx
+0x4001af <done+2>:	pop    %edx
+done () at interrupt.S:380
+380		popl	%esi
+0x4001b0 <done+3>:	pop    %esi
+done () at interrupt.S:381
+381		popl	%edi
+0x4001b1 <done+4>:	pop    %edi
+done () at interrupt.S:382
+382		popl	%ebp
+0x4001b2 <done+5>:	pop    %ebp
+done () at interrupt.S:383
+383		iret
+0x4001b3 <done+6>:	iret   
+0x08048262 in ?? ()
+0x8048262:	pop    %ebx
+0x08048263 in ?? ()
+0x8048263:	ret    
+0x0804836c in ?? ()
+0x804836c:	leave  
+0x0804836d in ?? ()
+0x804836d:	ret    
+0x080480bd in ?? ()
+0x80480bd:	jmp    0x80480bf
+0x080480bf in ?? ()
+0x80480bf:	mov    $0x8048530,%eax
+0x080480c4 in ?? ()
+0x80480c4:	mov    %eax,0x4(%esp)
+0x080480c8 in ?? ()
+0x80480c8:	movl   $0x1,(%esp)
+0x080480cf in ?? ()
+0x80480cf:	call   0x8048345
+0x08048345 in ?? ()
+0x8048345:	push   %ebp
+0x08048346 in ?? ()
+0x8048346:	mov    %esp,%ebp
+0x08048348 in ?? ()
+0x8048348:	sub    $0x18,%esp
+0x0804834b in ?? ()
+0x804834b:	mov    0xc(%ebp),%eax
+0x0804834e in ?? ()
+0x804834e:	mov    %eax,(%esp)
+0x08048351 in ?? ()
+0x8048351:	call   0x80482f8
+0x080482f8 in ?? ()
+0x80482f8:	push   %ebp
+0x080482f9 in ?? ()
+0x80482f9:	mov    %esp,%ebp
+0x080482fb in ?? ()
+0x80482fb:	sub    $0x10,%esp
+0x080482fe in ?? ()
+0x80482fe:	movl   $0x0,0xfffffffc(%ebp)
+0x08048305 in ?? ()
+0x8048305:	jmp    0x804830f
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048307 in ?? ()
+0x8048307:	addl   $0x1,0x8(%ebp)
+0x0804830b in ?? ()
+0x804830b:	addl   $0x1,0xfffffffc(%ebp)
+0x0804830f in ?? ()
+0x804830f:	mov    0x8(%ebp),%eax
+0x08048312 in ?? ()
+0x8048312:	movzbl (%eax),%eax
+0x08048315 in ?? ()
+0x8048315:	test   %al,%al
+0x08048317 in ?? ()
+0x8048317:	jne    0x8048307
+0x08048319 in ?? ()
+0x8048319:	mov    0xfffffffc(%ebp),%eax
+0x0804831c in ?? ()
+0x804831c:	leave  
+0x0804831d in ?? ()
+0x804831d:	ret    
+0x08048356 in ?? ()
+0x8048356:	mov    %eax,0x8(%esp)
+0x0804835a in ?? ()
+0x804835a:	mov    0xc(%ebp),%eax
+0x0804835d in ?? ()
+0x804835d:	mov    %eax,0x4(%esp)
+0x08048361 in ?? ()
+0x8048361:	mov    0x8(%ebp),%eax
+0x08048364 in ?? ()
+0x8048364:	mov    %eax,(%esp)
+0x08048367 in ?? ()
+0x8048367:	call   0x804824e
+0x0804824e in ?? ()
+0x804824e:	push   %ebx
+0x0804824f in ?? ()
+0x804824f:	mov    $0x4,%eax
+0x08048254 in ?? ()
+0x8048254:	mov    0x8(%esp),%ebx
+0x08048258 in ?? ()
+0x8048258:	mov    0xc(%esp),%ecx
+0x0804825c in ?? ()
+0x804825c:	mov    0x10(%esp),%edx
+0x08048260 in ?? ()
+0x8048260:	int    $0x80
+sys_call_handler () at interrupt.S:368
+368		pushl	%edi
+0x40019c <sys_call_handler+1>:	push   %edi
+369		pushl	%esi
+0x40019d <sys_call_handler+2>:	push   %esi
+370		pushl	%edx
+0x40019e <sys_call_handler+3>:	push   %edx
+371		pushl	%ecx
+0x40019f <sys_call_handler+4>:	push   %ecx
+372		pushl	%ebx
+0x4001a0 <sys_call_handler+5>:	push   %ebx
+373		cmpl	$9, %eax
+0x4001a1 <sys_call_handler+6>:	cmp    $0x9,%eax
+374		ja		done
+0x4001a4 <sys_call_handler+9>:	ja     0x4001ad <done>
+375		call	*operations(, %eax, 4)
+0x4001a6 <sys_call_handler+11>:	call   *0x4001b4(,%eax,4)
+open (filename=0x1 "ÿ") at syscall.c:262
+262	int32_t open(const uint8_t* filename){
+Current language:  auto; currently c
+0x403f48 <open>:	push   %ebp
+0x00403f49	262	int32_t open(const uint8_t* filename){
+0x403f49 <open+1>:	mov    %esp,%ebp
+0x00403f4b	262	int32_t open(const uint8_t* filename){
+0x403f4b <open+3>:	sub    $0xa8,%esp
+264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f51 <open+9>:	movzbl 0x40b004,%eax
+0x00403f58	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f58 <open+16>:	movzbl %al,%eax
+0x00403f5b	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f5b <open+19>:	shl    $0xd,%eax
+0x00403f5e	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f5e <open+22>:	neg    %eax
+0x00403f60	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f60 <open+24>:	add    $0x7fe000,%eax
+0x00403f65	264		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x403f65 <open+29>:	mov    %eax,0xfffffff8(%ebp)
+266		int32_t i = 0;
+0x403f68 <open+32>:	movl   $0x0,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f6f <open+39>:	jmp    0x403f87 <open+63>
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+270			if(i >= 8) {
+0x403f71 <open+41>:	cmpl   $0x7,0xfffffffc(%ebp)
+0x00403f75	270			if(i >= 8) {
+0x403f75 <open+45>:	jle    0x403f83 <open+59>
+273			i++;
+0x403f83 <open+59>:	addl   $0x1,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+270			if(i >= 8) {
+0x403f71 <open+41>:	cmpl   $0x7,0xfffffffc(%ebp)
+0x00403f75	270			if(i >= 8) {
+0x403f75 <open+45>:	jle    0x403f83 <open+59>
+273			i++;
+0x403f83 <open+59>:	addl   $0x1,0xfffffffc(%ebp)
+269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f87 <open+63>:	mov    0xfffffffc(%ebp),%eax
+0x00403f8a	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8a <open+66>:	mov    0xfffffff8(%ebp),%ecx
+0x00403f8d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f8d <open+69>:	lea    0x0(,%eax,4),%edx
+0x00403f94	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f94 <open+76>:	lea    0x0(,%edx,8),%eax
+0x00403f9b	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9b <open+83>:	sub    %edx,%eax
+0x00403f9d	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9d <open+85>:	add    %ecx,%eax
+0x00403f9f	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403f9f <open+87>:	add    $0x18,%eax
+0x00403fa2	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa2 <open+90>:	mov    (%eax),%eax
+0x00403fa4	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa4 <open+92>:	and    $0x1,%eax
+0x00403fa7	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa7 <open+95>:	test   %al,%al
+0x00403fa9	269		while(process_control_block->fd[i].flags & IN_USE) {
+0x403fa9 <open+97>:	jne    0x403f71 <open+41>
+276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fab <open+99>:	mov    0x8(%ebp),%eax
+0x00403fae	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fae <open+102>:	movl   $0x5,0x8(%esp)
+0x00403fb6	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fb6 <open+110>:	movl   $0x404c7b,0x4(%esp)
+0x00403fbe	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fbe <open+118>:	mov    %eax,(%esp)
+0x00403fc1	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc1 <open+121>:	call   0x4033ed <strncmp>
+strncmp (s1=0x1 "ÿ", s2=0x404c7b "stdin", n=5) at lib.c:486
+486	{
+0x4033ed <strncmp>:	push   %ebp
+0x004033ee	486	{
+0x4033ee <strncmp+1>:	mov    %esp,%ebp
+0x004033f0	486	{
+0x4033f0 <strncmp+3>:	sub    $0x14,%esp
+488		for(i=0; i<n; i++) {
+0x4033f3 <strncmp+6>:	movl   $0x0,0xfffffffc(%ebp)
+0x004033fa	488		for(i=0; i<n; i++) {
+0x4033fa <strncmp+13>:	jmp    0x403444 <strncmp+87>
+0x00403444	488		for(i=0; i<n; i++) {
+0x403444 <strncmp+87>:	mov    0xfffffffc(%ebp),%eax
+0x00403447	488		for(i=0; i<n; i++) {
+0x403447 <strncmp+90>:	cmp    0x10(%ebp),%eax
+0x0040344a	488		for(i=0; i<n; i++) {
+0x40344a <strncmp+93>:	jb     0x4033fc <strncmp+15>
+489			if( (s1[i] != s2[i]) ||
+0x4033fc <strncmp+15>:	mov    0xfffffffc(%ebp),%eax
+0x004033ff	489			if( (s1[i] != s2[i]) ||
+0x4033ff <strncmp+18>:	add    0x8(%ebp),%eax
+0x00403402	489			if( (s1[i] != s2[i]) ||
+0x403402 <strncmp+21>:	movzbl (%eax),%edx
+0x00403405	489			if( (s1[i] != s2[i]) ||
+0x403405 <strncmp+24>:	mov    0xfffffffc(%ebp),%eax
+0x00403408	489			if( (s1[i] != s2[i]) ||
+0x403408 <strncmp+27>:	add    0xc(%ebp),%eax
+0x0040340b	489			if( (s1[i] != s2[i]) ||
+0x40340b <strncmp+30>:	movzbl (%eax),%eax
+0x0040340e	489			if( (s1[i] != s2[i]) ||
+0x40340e <strncmp+33>:	cmp    %al,%dl
+0x00403410	489			if( (s1[i] != s2[i]) ||
+0x403410 <strncmp+35>:	jne    0x40341f <strncmp+50>
+498				return s1[i] - s2[i];
+0x40341f <strncmp+50>:	mov    0xfffffffc(%ebp),%eax
+0x00403422	498				return s1[i] - s2[i];
+0x403422 <strncmp+53>:	add    0x8(%ebp),%eax
+0x00403425	498				return s1[i] - s2[i];
+0x403425 <strncmp+56>:	movzbl (%eax),%eax
+0x00403428	498				return s1[i] - s2[i];
+0x403428 <strncmp+59>:	movsbl %al,%edx
+0x0040342b	498				return s1[i] - s2[i];
+0x40342b <strncmp+62>:	mov    0xfffffffc(%ebp),%eax
+0x0040342e	498				return s1[i] - s2[i];
+0x40342e <strncmp+65>:	add    0xc(%ebp),%eax
+0x00403431	498				return s1[i] - s2[i];
+0x403431 <strncmp+68>:	movzbl (%eax),%eax
+0x00403434	498				return s1[i] - s2[i];
+0x403434 <strncmp+71>:	movsbl %al,%eax
+0x00403437	498				return s1[i] - s2[i];
+0x403437 <strncmp+74>:	mov    %edx,%ecx
+0x00403439	498				return s1[i] - s2[i];
+0x403439 <strncmp+76>:	sub    %eax,%ecx
+0x0040343b	498				return s1[i] - s2[i];
+0x40343b <strncmp+78>:	mov    %ecx,0xffffffec(%ebp)
+0x0040343e	498				return s1[i] - s2[i];
+0x40343e <strncmp+81>:	jmp    0x403453 <strncmp+102>
+0x00403453	501		return 0;
+0x403453 <strncmp+102>:	mov    0xffffffec(%ebp),%eax
+502	}
+0x403456 <strncmp+105>:	leave  
+0x00403457 in strncmp (s1=0x1 "ÿ", s2=0x8048530 "391OS> ", n=7) at lib.c:502
+502	}
+0x403457 <strncmp+106>:	ret    
+0x00403fc6 in open (filename=0x1 "ÿ") at syscall.c:276
+276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc6 <open+126>:	test   %eax,%eax
+0x00403fc8	276		if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
+0x403fc8 <open+128>:	jne    0x40405d <open+277>
+294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x40405d <open+277>:	mov    0x8(%ebp),%eax
+0x00404060	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404060 <open+280>:	movl   $0x6,0x8(%esp)
+0x00404068	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404068 <open+288>:	movl   $0x404c81,0x4(%esp)
+0x00404070	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404070 <open+296>:	mov    %eax,(%esp)
+0x00404073	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404073 <open+299>:	call   0x4033ed <strncmp>
+strncmp (s1=0x1 "ÿ", s2=0x404c81 "stdout", n=6) at lib.c:486
+486	{
+0x4033ed <strncmp>:	push   %ebp
+0x004033ee	486	{
+0x4033ee <strncmp+1>:	mov    %esp,%ebp
+0x004033f0	486	{
+0x4033f0 <strncmp+3>:	sub    $0x14,%esp
+488		for(i=0; i<n; i++) {
+0x4033f3 <strncmp+6>:	movl   $0x0,0xfffffffc(%ebp)
+0x004033fa	488		for(i=0; i<n; i++) {
+0x4033fa <strncmp+13>:	jmp    0x403444 <strncmp+87>
+0x00403444	488		for(i=0; i<n; i++) {
+0x403444 <strncmp+87>:	mov    0xfffffffc(%ebp),%eax
+0x00403447	488		for(i=0; i<n; i++) {
+0x403447 <strncmp+90>:	cmp    0x10(%ebp),%eax
+0x0040344a	488		for(i=0; i<n; i++) {
+0x40344a <strncmp+93>:	jb     0x4033fc <strncmp+15>
+489			if( (s1[i] != s2[i]) ||
+0x4033fc <strncmp+15>:	mov    0xfffffffc(%ebp),%eax
+0x004033ff	489			if( (s1[i] != s2[i]) ||
+0x4033ff <strncmp+18>:	add    0x8(%ebp),%eax
+0x00403402	489			if( (s1[i] != s2[i]) ||
+0x403402 <strncmp+21>:	movzbl (%eax),%edx
+0x00403405	489			if( (s1[i] != s2[i]) ||
+0x403405 <strncmp+24>:	mov    0xfffffffc(%ebp),%eax
+0x00403408	489			if( (s1[i] != s2[i]) ||
+0x403408 <strncmp+27>:	add    0xc(%ebp),%eax
+0x0040340b	489			if( (s1[i] != s2[i]) ||
+0x40340b <strncmp+30>:	movzbl (%eax),%eax
+0x0040340e	489			if( (s1[i] != s2[i]) ||
+0x40340e <strncmp+33>:	cmp    %al,%dl
+0x00403410	489			if( (s1[i] != s2[i]) ||
+0x403410 <strncmp+35>:	jne    0x40341f <strncmp+50>
+498				return s1[i] - s2[i];
+0x40341f <strncmp+50>:	mov    0xfffffffc(%ebp),%eax
+0x00403422	498				return s1[i] - s2[i];
+0x403422 <strncmp+53>:	add    0x8(%ebp),%eax
+0x00403425	498				return s1[i] - s2[i];
+0x403425 <strncmp+56>:	movzbl (%eax),%eax
+0x00403428	498				return s1[i] - s2[i];
+0x403428 <strncmp+59>:	movsbl %al,%edx
+0x0040342b	498				return s1[i] - s2[i];
+0x40342b <strncmp+62>:	mov    0xfffffffc(%ebp),%eax
+0x0040342e	498				return s1[i] - s2[i];
+0x40342e <strncmp+65>:	add    0xc(%ebp),%eax
+0x00403431	498				return s1[i] - s2[i];
+0x403431 <strncmp+68>:	movzbl (%eax),%eax
+0x00403434	498				return s1[i] - s2[i];
+0x403434 <strncmp+71>:	movsbl %al,%eax
+0x00403437	498				return s1[i] - s2[i];
+0x403437 <strncmp+74>:	mov    %edx,%ecx
+0x00403439	498				return s1[i] - s2[i];
+0x403439 <strncmp+76>:	sub    %eax,%ecx
+0x0040343b	498				return s1[i] - s2[i];
+0x40343b <strncmp+78>:	mov    %ecx,0xffffffec(%ebp)
+0x0040343e	498				return s1[i] - s2[i];
+0x40343e <strncmp+81>:	jmp    0x403453 <strncmp+102>
+0x00403453	501		return 0;
+0x403453 <strncmp+102>:	mov    0xffffffec(%ebp),%eax
+502	}
+0x403456 <strncmp+105>:	leave  
+0x00403457 in strncmp (s1=0x1 "ÿ", s2=0x8048530 "391OS> ", n=7) at lib.c:502
+502	}
+0x403457 <strncmp+106>:	ret    
+0x00404078 in open (filename=0x1 "ÿ") at syscall.c:294
+294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x404078 <open+304>:	test   %eax,%eax
+0x0040407a	294		if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
+0x40407a <open+306>:	jne    0x404113 <open+459>
+314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404113 <open+459>:	lea    0xffffffb8(%ebp),%eax
+0x00404116	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404116 <open+462>:	mov    %eax,0x4(%esp)
+0x0040411a	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x40411a <open+466>:	mov    0x8(%ebp),%eax
+0x0040411d	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x40411d <open+469>:	mov    %eax,(%esp)
+0x00404120	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404120 <open+472>:	call   0x400cd8 <read_dentry_by_name>
+read_dentry_by_name (fname=0x1 "ÿ", dentry=0x7fff80) at file_system.c:195
+195	{
+0x400cd8 <read_dentry_by_name>:	push   %ebp
+0x00400cd9	195	{
+0x400cd9 <read_dentry_by_name+1>:	mov    %esp,%ebp
+0x00400cdb	195	{
+0x400cdb <read_dentry_by_name+3>:	sub    $0x78,%esp
+196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400cde <read_dentry_by_name+6>:	mov    0x8(%ebp),%eax
+0x00400ce1	196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce1 <read_dentry_by_name+9>:	mov    %eax,(%esp)
+0x00400ce4	196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce4 <read_dentry_by_name+12>:	call   0x4032ae <strlen>
+strlen (s=0x1 "ÿ") at lib.c:277
+277	{
+0x4032ae <strlen>:	push   %ebp
+0x004032af	277	{
+0x4032af <strlen+1>:	mov    %esp,%ebp
+0x004032b1	277	{
+0x4032b1 <strlen+3>:	sub    $0x4,%esp
+278		register uint32_t len = 0;
+0x4032b4 <strlen+6>:	movl   $0x0,0xfffffffc(%ebp)
+279		while(s[len] != '\0')
+0x4032bb <strlen+13>:	jmp    0x4032c1 <strlen+19>
+279		while(s[len] != '\0')
+0x4032c1 <strlen+19>:	mov    0xfffffffc(%ebp),%eax
+0x004032c4	279		while(s[len] != '\0')
+0x4032c4 <strlen+22>:	add    0x8(%ebp),%eax
+0x004032c7	279		while(s[len] != '\0')
+0x4032c7 <strlen+25>:	movzbl (%eax),%eax
+0x004032ca	279		while(s[len] != '\0')
+0x4032ca <strlen+28>:	test   %al,%al
+0x004032cc	279		while(s[len] != '\0')
+0x4032cc <strlen+30>:	jne    0x4032bd <strlen+15>
+280			len++;
+0x4032bd <strlen+15>:	addl   $0x1,0xfffffffc(%ebp)
+279		while(s[len] != '\0')
+0x4032c1 <strlen+19>:	mov    0xfffffffc(%ebp),%eax
+0x004032c4	279		while(s[len] != '\0')
+0x4032c4 <strlen+22>:	add    0x8(%ebp),%eax
+0x004032c7	279		while(s[len] != '\0')
+0x4032c7 <strlen+25>:	movzbl (%eax),%eax
+0x004032ca	279		while(s[len] != '\0')
+0x4032ca <strlen+28>:	test   %al,%al
+0x004032cc	279		while(s[len] != '\0')
+0x4032cc <strlen+30>:	jne    0x4032bd <strlen+15>
+282		return len;
+0x4032ce <strlen+32>:	mov    0xfffffffc(%ebp),%eax
+283	}
+0x4032d1 <strlen+35>:	leave  
+0x004032d2 in strlen (s=0x1 "ÿ") at lib.c:283
+283	}
+0x4032d2 <strlen+36>:	ret    
+0x00400ce9 in read_dentry_by_name (fname=0x1 "ÿ", dentry=0x7fff80)
+    at file_system.c:196
+196		uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
+0x400ce9 <read_dentry_by_name+17>:	mov    %eax,0xffffffe8(%ebp)
+199		if(1 < name_length && name_length < NAME_SIZE)
+0x400cec <read_dentry_by_name+20>:	cmpl   $0x1,0xffffffe8(%ebp)
+0x00400cf0	199		if(1 < name_length && name_length < NAME_SIZE)
+0x400cf0 <read_dentry_by_name+24>:	
+    jbe    0x400de1 <read_dentry_by_name+265>
+231		return FAIL;										// return on failure (-1)
+0x400de1 <read_dentry_by_name+265>:	movl   $0xffffffff,0xffffff9c(%ebp)
+0x00400de8	231		return FAIL;										// return on failure (-1)
+0x400de8 <read_dentry_by_name+272>:	mov    0xffffff9c(%ebp),%eax
+232	}
+0x400deb <read_dentry_by_name+275>:	leave  
+0x00400dec in read_dentry_by_name (fname=0x1 "ÿ", dentry=0x8048530)
+    at file_system.c:232
+232	}
+0x400dec <read_dentry_by_name+276>:	ret    
+0x00404125 in open (filename=0x1 "ÿ") at syscall.c:314
+314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404125 <open+477>:	cmp    $0xffffffff,%eax
+0x00404128	314		if(read_dentry_by_name(filename, &file) == -1) {
+0x404128 <open+480>:	jne    0x404136 <open+494>
+315			return -1;
+0x40412a <open+482>:	movl   $0xffffffff,0xffffffa8(%ebp)
+0x00404131	315			return -1;
+0x404131 <open+489>:	jmp    0x404289 <open+833>
+0x00404289	327				return -1;
+0x404289 <open+833>:	mov    0xffffffa8(%ebp),%eax
+329	}
+0x40428c <open+836>:	leave  
+0x0040428d in open (filename=0x1 "ÿ") at syscall.c:329
+329	}
+0x40428d <open+837>:	ret    
+done () at interrupt.S:377
+377		popl	%ebx
+Current language:  auto; currently asm
+0x4001ad <done>:	pop    %ebx
+done () at interrupt.S:378
+378		popl	%ecx
+0x4001ae <done+1>:	pop    %ecx
+done () at interrupt.S:379
+379		popl	%edx
+0x4001af <done+2>:	pop    %edx
+done () at interrupt.S:380
+380		popl	%esi
+0x4001b0 <done+3>:	pop    %esi
+done () at interrupt.S:381
+381		popl	%edi
+0x4001b1 <done+4>:	pop    %edi
+done () at interrupt.S:382
+382		popl	%ebp
+0x4001b2 <done+5>:	pop    %ebp
+done () at interrupt.S:383
+383		iret
+0x4001b3 <done+6>:	iret   
+0x08048262 in ?? ()
+0x8048262:	pop    %ebx
+0x08048263 in ?? ()
+0x8048263:	ret    
+0x0804836c in ?? ()
+0x804836c:	leave  
+0x0804836d in ?? ()
+0x804836d:	ret    
+0x080480d4 in ?? ()
+0x80480d4:	movl   $0x3ff,0x8(%esp)
+0x080480dc in ?? ()
+0x80480dc:	lea    0xfffffbf4(%ebp),%eax
+0x080480e2 in ?? ()
+0x80480e2:	mov    %eax,0x4(%esp)
+0x080480e6 in ?? ()
+0x80480e6:	movl   $0x0,(%esp)
+0x080480ed in ?? ()
+0x80480ed:	call   0x8048238
+0x08048238 in ?? ()
+0x8048238:	push   %ebx
+0x08048239 in ?? ()
+0x8048239:	mov    $0x3,%eax
+0x0804823e in ?? ()
+0x804823e:	mov    0x8(%esp),%ebx
+0x08048242 in ?? ()
+0x8048242:	mov    0xc(%esp),%ecx
+0x08048246 in ?? ()
+0x8048246:	mov    0x10(%esp),%edx
+0x0804824a in ?? ()
+0x804824a:	int    $0x80
+sys_call_handler () at interrupt.S:368
+368		pushl	%edi
+0x40019c <sys_call_handler+1>:	push   %edi
+369		pushl	%esi
+0x40019d <sys_call_handler+2>:	push   %esi
+370		pushl	%edx
+0x40019e <sys_call_handler+3>:	push   %edx
+371		pushl	%ecx
+0x40019f <sys_call_handler+4>:	push   %ecx
+372		pushl	%ebx
+0x4001a0 <sys_call_handler+5>:	push   %ebx
+373		cmpl	$9, %eax
+0x4001a1 <sys_call_handler+6>:	cmp    $0x9,%eax
+374		ja		done
+0x4001a4 <sys_call_handler+9>:	ja     0x4001ad <done>
+375		call	*operations(, %eax, 4)
+0x4001a6 <sys_call_handler+11>:	call   *0x4001b4(,%eax,4)
+write (fd=0, buf=0x83ffbdc, nbytes=1023) at syscall.c:404
+404	int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
+Current language:  auto; currently c
+0x404508 <write>:	push   %ebp
+0x00404509	404	int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
+0x404509 <write+1>:	mov    %esp,%ebp
+0x0040450b	404	int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
+0x40450b <write+3>:	sub    $0x28,%esp
+406		if(fd < 0 || fd > 7) {
+0x40450e <write+6>:	cmpl   $0x0,0x8(%ebp)
+0x00404512	406		if(fd < 0 || fd > 7) {
+0x404512 <write+10>:	js     0x40451a <write+18>
+0x00404514	406		if(fd < 0 || fd > 7) {
+0x404514 <write+12>:	cmpl   $0x7,0x8(%ebp)
+0x00404518	406		if(fd < 0 || fd > 7) {
+0x404518 <write+16>:	jle    0x404526 <write+30>
+410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x404526 <write+30>:	movzbl 0x40b004,%eax
+0x0040452d	410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x40452d <write+37>:	movzbl %al,%eax
+0x00404530	410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x404530 <write+40>:	shl    $0xd,%eax
+0x00404533	410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x404533 <write+43>:	neg    %eax
+0x00404535	410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x404535 <write+45>:	add    $0x7fe000,%eax
+0x0040453a	410		pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+0x40453a <write+50>:	mov    %eax,0xfffffffc(%ebp)
+412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x40453d <write+53>:	mov    0x8(%ebp),%eax
+0x00404540	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404540 <write+56>:	mov    0xfffffffc(%ebp),%ecx
+0x00404543	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404543 <write+59>:	lea    0x0(,%eax,4),%edx
+0x0040454a	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x40454a <write+66>:	lea    0x0(,%edx,8),%eax
+0x00404551	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404551 <write+73>:	sub    %edx,%eax
+0x00404553	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404553 <write+75>:	add    %ecx,%eax
+0x00404555	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404555 <write+77>:	add    $0x18,%eax
+0x00404558	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x404558 <write+80>:	mov    (%eax),%eax
+0x0040455a	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x40455a <write+82>:	and    $0x1,%eax
+0x0040455d	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x40455d <write+85>:	test   %eax,%eax
+0x0040455f	412		if(!(process_control_block->fd[fd].flags & IN_USE)) {
+0x40455f <write+87>:	jne    0x40456d <write+101>
+415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x40456d <write+101>:	mov    0x8(%ebp),%eax
+0x00404570	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404570 <write+104>:	mov    0xfffffffc(%ebp),%ecx
+0x00404573	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404573 <write+107>:	lea    0x0(,%eax,4),%edx
+0x0040457a	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x40457a <write+114>:	lea    0x0(,%edx,8),%eax
+0x00404581	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404581 <write+121>:	sub    %edx,%eax
+0x00404583	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404583 <write+123>:	add    %ecx,%eax
+0x00404585	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404585 <write+125>:	add    $0x4,%eax
+0x00404588	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x404588 <write+128>:	mov    (%eax),%eax
+0x0040458a	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x40458a <write+130>:	test   %eax,%eax
+0x0040458c	415		if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+0x40458c <write+132>:	jne    0x40459a <write+146>
+416			return -1;
+0x40458e <write+134>:	movl   $0xffffffff,0xffffffe8(%ebp)
+0x00404595	416			return -1;
+0x404595 <write+141>:	jmp    0x40468a <write+386>
+0x0040468a	431				return -1;
+0x40468a <write+386>:	mov    0xffffffe8(%ebp),%eax
+433	}
+0x40468d <write+389>:	leave  
+0x0040468e in write (fd=0, buf=0x0, nbytes=134513389) at syscall.c:433
+433	}
+0x40468e <write+390>:	ret    
+done () at interrupt.S:377
+377		popl	%ebx
+Current language:  auto; currently asm
+0x4001ad <done>:	pop    %ebx
+done () at interrupt.S:378
+378		popl	%ecx
+0x4001ae <done+1>:	pop    %ecx
+done () at interrupt.S:379
+379		popl	%edx
+0x4001af <done+2>:	pop    %edx
+done () at interrupt.S:380
+380		popl	%esi
+0x4001b0 <done+3>:	pop    %esi
+putpkt: write failed: Broken pipe.
+Quit
+The program is running.  Exit anyway? (y or n) 
+putpkt: write failed: Broken pipe.

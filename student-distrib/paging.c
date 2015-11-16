@@ -6,6 +6,9 @@
 /* Redefine from lib.c */
 #define VIDEO 0xB8000
 
+static uint32_t pageTable[table_size] __attribute__((aligned (page_size)));
+static uint32_t pageDirct[table_size] __attribute__((aligned (page_size)));
+
 // specify whether the privilege is user or kernel
 /*typedef enum privilege_lvl
 {
@@ -15,9 +18,6 @@
 
 void initialize_paging()
 {
-	static uint32_t pageTable[table_size] __attribute__((aligned (page_size)));
-	static uint32_t pageDirct[table_size] __attribute__((aligned (page_size)));
-
 	int i;								// variable to iterate and initialize
 	for(i = 0; i < table_size; i ++)
 	{
@@ -37,26 +37,11 @@ void initialize_paging()
 	enable_paging();
 }
 
-uint32_t new_page_dirct(uint8_t process_number) {
-	static uint32_t pageTable[table_size] __attribute__((aligned (page_size)));
-	static uint32_t pageDirct[table_size] __attribute__((aligned (page_size)));
+void new_page_dirct(uint8_t process_number) {
 
-	int i;								// variable to iterate and initialize
-	for(i = 0; i < table_size; i ++)
-	{
-		pageTable[i] = 0;
-		pageTable[i] |= (i << 12);
-		pageDirct[i] = enable_write;
-	}
+	pageDirct[32] |= ((process_number + 2) << 22) | enable_present | enable_4MB | enable_user;	// set the present bit for the task as well as the 4MB bit and user bit
 
-	int x = getIndex(VIDEO);				// get the index to page table
-	pageTable[x] |= enable_present;	// set the present bit on
-
-
-	pageDirct[0] |= (((unsigned int) pageTable) & 0xFFFFF000) | enable_present;		// set the present bit for the video
-	pageDirct[1] |= (0x400000) | enable_present | enable_global | enable_4MB;	// set the present bit for the kernel as well as the 4MB bit
-	pageDirct[32] |= ((process_number + 1) << 22) | enable_present | enable_4MB | enable_user;	// set the present bit for the task as well as the 4MB bit and user bit
-	return (uint32_t)&pageDirct[32];
+	return;
 }
 
 void enable_paging()
@@ -87,4 +72,14 @@ void load_paging_dirct(uint32_t address)
 			: "g" (address)
 			: "eax"
 	);
+}
+
+void flush_tlb()
+{
+	asm volatile (
+		"movl %%cr3, %%eax					;"
+		"movl %%eax, %%cr3					"
+			:/* no output */
+			:/* no input */
+			: "eax");
 }

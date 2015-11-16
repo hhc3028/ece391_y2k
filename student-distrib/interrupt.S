@@ -27,10 +27,6 @@
 .globl	sys_call_handler
 .globl	return_to_user
 .align	4
-USER_CS:
-	.long 0x0023
-USER_DS:
-	.long 0x002B
 
 
 # Assembly linkage to the keyboard interrupt handler
@@ -400,27 +396,25 @@ operations:
 # 	USER_DS
 return_to_user:
 		cli							# mask the interrupts
-		movl	4(%esp),	%ebx	# store the EIP into EBX, EBX = EIP
 
-		movl 	$USER_DS,	%eax	# load the segment selectors
+		movl 	$0x2B,	%eax		# load the segment selectors
 		
-		movw	(%eax),		%ds 	# load the DS with the correct DS (from User)
-		movw	(%eax), 	%es 	# load the other segment registers
-		movw	(%eax), 	%fs
-		movw	(%eax), 	%gs
+		movw	%ax,		%ds 	# load the DS with the correct DS (from User)
 
-		pushl 	(%eax)				# push the User_DS to the top of the stack
+		pushl 	%eax				# push the User_DS to the top of the stack
 
-		pushl 	$0x83FFFF0				# push the current stack pointer
+		pushl 	$0x83FFFFC			# push the current stack pointer
 
 		pushfl						# push the flags back to the stack
 		popl	%eax 				# pull them back down to...
-		orl		$0x4200, %eax 		# be altered appropriately
+		orl		$0x200, %eax 		# be altered appropriately
 		pushl	%eax
 
-		movl	$USER_CS,	%eax
-		pushl 	(%eax)				# push the USER_CS to the top of the stack	
+		pushl 	$0x23				# push the USER_CS to the top of the stack	
 		pushl 	%ebx 				# push the EIP onto the stack
 
 		iret						# return from the interrupt
+
+halt_ret_label:
+		ret
 		
