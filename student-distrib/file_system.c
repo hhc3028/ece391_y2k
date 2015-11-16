@@ -410,10 +410,12 @@ void test_file_systems(const uint8_t* fname)
 
 int32_t read_file(int32_t fd, uint8_t* buf, int32_t length, int32_t open_process)
 {
-	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process + 1));
 	uint32_t position = process_control_block->fd[fd].file_position;
 	int8_t * fname = process_control_block->filenames[fd];
+	
 	dentries_t test_dentry;
+	
 	uint32_t pass_fail = read_dentry_by_name((uint8_t *) fname, &test_dentry);
 
 	if(fname == NULL)		// if there is no filename passed

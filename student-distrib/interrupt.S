@@ -406,9 +406,9 @@ return_to_user:
 		pushl 	$0x83FFFFC			# push the current stack pointer
 
 		pushfl						# push the flags back to the stack
-		popl	%eax 				# pull them back down to...
-		orl		$0x200, %eax 		# be altered appropriately
-		pushl	%eax
+		popl	%eax 				# pop the stack back to adjust
+		orl		$0x200, %eax 		# adjust the flags
+		pushl	%eax 				# push the adjusted flags back onto the stack
 
 		pushl 	$0x23				# push the USER_CS to the top of the stack	
 		pushl 	%ebx 				# push the EIP onto the stack
