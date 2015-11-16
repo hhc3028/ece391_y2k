@@ -24,10 +24,10 @@ void rtc_int_handler(void);
 #endif	/* _RTC_H */
 
 //system call for rtc
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes); 
-int32_t rtc_write(int32_t fd, int32_t * set_freq, int32_t nbytes);
+int32_t rtc_read(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length); 
+int32_t rtc_write(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length);
 int32_t rtc_open(pcb_t * process_control_block, int32_t file_num);
-int32_t rtc_close(pcb_t * process_control_block, int32_t file_num);
+int32_t rtc_close();
 
 //helper function to determine if x is power of 2
 int isPowerOfTwo (int32_t x);

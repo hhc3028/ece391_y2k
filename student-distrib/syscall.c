@@ -20,6 +20,9 @@ extern uint32_t halt_ret_label();
 /* Flags that indicate the currently opened processes */
 static uint8_t processes = 0x00;
 
+/* Indicator for the current process we are on */
+static uint8_t open_process = 0;
+
 /*
  *execute()
  *this system call attempts to load and execute a new program, handing off the processor to the new
@@ -117,7 +120,7 @@ int32_t execute(const uint8_t * command)
 			return -1;
 		}
 	}
-
+	processes |= bitmask;
 	/*set up page directory? */
 	new_page_dirct(new_process);
 	flush_tlb();
@@ -197,8 +200,8 @@ int32_t execute(const uint8_t * command)
 	process_control_block->esp = temp_esp;
 	temp_ebp = _8MB + _4MB - 4;
 	//initialize stdin and stdout
-	open(open_process, (uint8_t *) "stdin", 0);
-	open(open_process, (uint8_t *) "stdout", 0);
+	open((uint8_t *) "stdin");
+	open((uint8_t *) "stdout");
 
 	asm volatile (
 		"movl	%0, %%ebx					;"
@@ -285,7 +288,7 @@ int32_t halt(uint8_t status)
  *	Return: 0 on success, -1 on failure
  *	Side Effects: Changes an empty entry in the file array
  */
-int32_t open(int32_t fd, const uint8_t* filename, int32_t nbytes){
+int32_t open(const uint8_t* filename){
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 	//iterator to check open processes
@@ -328,7 +331,7 @@ int32_t open(int32_t fd, const uint8_t* filename, int32_t nbytes){
 			process_control_block->fd[1].file_position = 0;
 			process_control_block->fd[1].inode_ptr = NULL;
 			process_control_block->file_type[1] = 4;
-			return 0;
+			return 1;
 		}
 		else {
 			return -1;
@@ -361,7 +364,7 @@ int32_t open(int32_t fd, const uint8_t* filename, int32_t nbytes){
  *	Return: 0 on success, -1 on failure
  *	Side Effects: Changes an entry in the file array to unused
  */
-int32_t close(int32_t fd, const uint8_t* filename, int32_t nbytes) {
+int32_t close(int32_t fd) {
 	/* Check for invalid file descriptor */
 	if(fd < 2 || fd > 7) {
 		return -1;
@@ -378,8 +381,17 @@ int32_t close(int32_t fd, const uint8_t* filename, int32_t nbytes) {
 	if(process_control_block->fd[fd].fop_ptr.close == NULL) {
 		return -1;
 	}
-	/* Call the close function for the file entry */
-	return process_control_block->fd[fd].fop_ptr.close(process_control_block, fd);
+	strcpy((int8_t*)process_control_block->filenames[fd], NULL);
+	process_control_block->fd[fd].fop_ptr.read = NULL;
+	process_control_block->fd[fd].fop_ptr.write = NULL;
+	process_control_block->fd[fd].fop_ptr.close = NULL;
+	process_control_block->fd[fd].fop_ptr.open = NULL;
+	process_control_block->fd[fd].flags = NOT_IN_USE;
+	process_control_block->fd[fd].file_position = 0;
+	process_control_block->fd[fd].inode_ptr = NULL;
+	process_control_block->file_type[fd] = -1;
+
+	return 0;
 }
 /**
  *	Description: read: system call for read
@@ -403,7 +415,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	return process_control_block->fd[fd].fop_ptr.read(fd, buf, nbytes);
+	uint32_t position = process_control_block->fd[fd].file_position;
+	int8_t * fname = process_control_block->filenames[fd];
+	return process_control_block->fd[fd].fop_ptr.read(fname, &position, buf, nbytes);
 }
 
 
@@ -429,5 +443,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	return process_control_block->fd[fd].fop_ptr.write(fd, buf, nbytes);
+	uint32_t position = process_control_block->fd[fd].file_position;
+	int8_t * fname = process_control_block->filenames[fd];
+	return process_control_block->fd[fd].fop_ptr.read(fname, &position, buf, nbytes);
 }

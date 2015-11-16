@@ -115,7 +115,7 @@ uint32_t setFreq(int32_t freq)
  * Inputs: none
  * Retvals: none
  */
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) 
+int32_t rtc_read(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length) 
 {
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
@@ -140,7 +140,7 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
  * n: number of bytes written
  */
 
-int32_t rtc_write(int32_t fd, int32_t * set_freq, int32_t nbytes)
+int32_t rtc_write(int8_t * fname, int32_t * position, uint8_t* set_freq, int32_t nbytes)
 {
 	int32_t freq;
 
@@ -185,7 +185,7 @@ int32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
 	
 	setFreq(2);
 	
-	return 0;
+	return file_num;
 }
 
 /*
@@ -196,20 +196,8 @@ int32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
  * Inputs: none
  * Retvals: 0 
  */
-int32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
+int32_t rtc_close()
 {
-	strcpy((int8_t*)process_control_block->filenames[file_num], NULL);
-	process_control_block->fd[file_num].fop_ptr.read = NULL;
-	process_control_block->fd[file_num].fop_ptr.write = NULL;
-	process_control_block->fd[file_num].fop_ptr.close = NULL;
-	process_control_block->fd[file_num].fop_ptr.open = NULL;
-	process_control_block->fd[file_num].flags = NOT_IN_USE;
-	process_control_block->fd[file_num].file_position = 0;
-	process_control_block->fd[file_num].inode_ptr = NULL;
-	process_control_block->file_type[file_num] = -1;
-	
-	setFreq(2);
-
 	return 0;
 }
 /*

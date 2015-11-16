@@ -40,15 +40,15 @@ int32_t read_data(uint32_t inode, uint32_t position, uint8_t* buf, uint32_t leng
 
 /* File Operations */
 int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file);
-int32_t read_file(int32_t fd, uint8_t* buf, int32_t length);
-int32_t write_file(int32_t fd, const void* buf, int32_t nbytes);
-int32_t close_file(pcb_t * process_control_block, int32_t file_num);
+int32_t read_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length);
+int32_t write_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length);
+int32_t close_file();
 
 /*Directory Operations */
 int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t file);
-int32_t read_dir(int32_t fd, uint8_t* buf, int32_t nbytes);
-int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
-int32_t close_dir(pcb_t * process_control_block, int32_t file_num);
+int32_t read_dir(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length);
+int32_t write_dir(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length);
+int32_t close_dir();
 
 #endif 	/* _FILESYSTEM_H */
 
