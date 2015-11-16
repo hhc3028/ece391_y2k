@@ -80,7 +80,7 @@ void initialize_keyboard() {
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
-		buf[a] = '\0';}
+		}
 }
 /*
 	DESCRIPTION: takes in the buffer value and puts it into the terminal buffer
