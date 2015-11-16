@@ -132,7 +132,7 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 	outputs the buf char array onto screen
 	
 */
-int32_t terminal_write(int32_t fd, unsigned char * terminal_buf, int32_t nbytes)
+int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
 {
 	int count; //count variable
 	for(count = 0; count < nbytes; count++)

@@ -48,5 +48,6 @@ extern int32_t sigreturn(void);*/
 
 /* Function to return the stack for User */
 extern void return_to_user(int32_t new_eip);
+extern uint32_t halt_ret_label();
 
 #endif /* _INTERRUPT_H*/

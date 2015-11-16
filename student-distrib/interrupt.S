@@ -26,6 +26,7 @@
 .globl	exception_reserved_wrapper
 .globl	sys_call_handler
 .globl	return_to_user
+.globl	halt_ret_label
 .align	4
 
 
@@ -420,5 +421,6 @@ return_to_user:
 		iret						# return from the interrupt
 
 halt_ret_label:
+		leave
 		ret
 		

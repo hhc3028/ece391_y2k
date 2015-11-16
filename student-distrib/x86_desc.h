@@ -196,6 +196,9 @@ typedef struct pcb_t {
 	uint32_t esp;
 } pcb_t;
 
+/* Indicator for the current process we are on */
+static uint8_t open_process = 0;
+
 /* Sets runtime-settable parameters in the GDT entry for the LDT */
 #define SET_LDT_PARAMS(str, addr, lim) \
 do { \

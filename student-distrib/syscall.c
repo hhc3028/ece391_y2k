@@ -15,9 +15,7 @@
 
 /* Artificial IRET */
 extern uint32_t to_user_space();
-
-/* Indicator for the current process we are on */
-static uint8_t open_process = 0;
+extern uint32_t halt_ret_label();
 
 /* Flags that indicate the currently opened processes */
 static uint8_t processes = 0x80;
@@ -263,22 +261,9 @@ int32_t halt(uint8_t status)
 
 
 	//load page directory of parent
-	uint32_t page_addr;
-	page_addr = (uint32_t)(&pageDirct[process_control_block->parent_process_number]);
-	asm volatile (
-			"movl page_addr, %%eax        ;"
-			"andl $0xFFFFFFE7, %%eax          ;"
-			"movl %%eax, %%cr3                ;"
-			"movl %%cr4, %%eax                ;"
-			"orl $0x00000090, %%eax           ;"
-			"movl %%eax, %%cr4                ;"
-			"movl %%cr0, %%eax                ;"
-			"orl $0x80000000, %%eax 	      ;"
-			"movl %%eax, %%cr0                 "
-			: : : "eax", "cc" );
+	new_page_dirct(process_control_block->parent_process_number);
+	flush_tlb();
 	
-
-
 
 	//set kernel stack bottom and tss to parent's kernel stack
 	uint32_t temp_ebp, temp_esp;
@@ -291,33 +276,17 @@ int32_t halt(uint8_t status)
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
 	uint32_t temp_status = status;
-/*
-	asm volatile ("					\
-		movl	%%ebx, %%esp		   ;\
-		pushl	%0				   ;\
-		movl	%%ecx, %%ebp		   ;\
-		popl	%%eax			   ;\
-		leave					   ;\
-		ret							\
-			" : /* no outputs */			
-
-
-/*																								\
-			  : "ebx" (process_control_block->parent_kbp), "ecx" (process_control_block->parent_ksp), "e" ((temp_status))		\
-			  : "memory", "ebx", , "ecx", "esp", "ebp", "eax");																	\
-*/
-
 
 	asm volatile(
-			"movl %0, %%esp					;"
-			"pushl %1						;"
-			"movl %0, %%ebp 				;"				
-			::"g"(process_control_block->parent_ksp),"g"(temp_status), "g"(process_control_block->parent_kbp));
+			"movl	%0, %%esp				;"
+			"pushl	%1						;"
+			"movl	%0, %%ebp 				;"				
+			"popl	%%eax					;"
+			"jmp	halt_ret_label			"
+			:
+			:"g"(process_control_block->parent_ksp),"g"(temp_status), "g"(process_control_block->parent_kbp)
+			:"esp", "ebp", "eax");
 
-	asm volatile("popl %eax");
-
-	asm volatile("leave");
-	asm volatile("ret");
 	return 0;
 }
 
@@ -449,7 +418,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	return process_control_block->fd[fd].fop_ptr.read(fd, buf, nbytes, open_process);
+	return process_control_block->fd[fd].fop_ptr.read(fd, buf, nbytes);
 }
 
 
