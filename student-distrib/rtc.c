@@ -182,6 +182,9 @@ int32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = NULL;
 	process_control_block->file_type[file_num] = 0;
+	
+	setFreq(2);
+	
 	return 0;
 }
 
@@ -204,6 +207,9 @@ int32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = NULL;
 	process_control_block->file_type[file_num] = -1;
+	
+	setFreq(2);
+
 	return 0;
 }
 /*
