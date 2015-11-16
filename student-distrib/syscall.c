@@ -187,8 +187,8 @@ int32_t execute(const uint8_t * command)
 	process_control_block->esp = temp_esp;
 	temp_ebp = _8MB + _4MB - 4;
 	//initialize stdin and stdout
-	open((uint8_t *) "stdin");
-	open((uint8_t *) "stdout");
+	open(open_process, (uint8_t *) "stdin", 0);
+	open(open_process, (uint8_t *) "stdout", 0);
 
 	asm volatile (
 		"movl	%0, %%ebx					;"
@@ -273,7 +273,7 @@ int32_t halt(uint8_t status)
  *	Return: 0 on success, -1 on failure
  *	Side Effects: Changes an empty entry in the file array
  */
-int32_t open(const uint8_t* filename){
+int32_t open(int32_t fd, const uint8_t* filename, int32_t nbytes){
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 	//iterator to check open processes
@@ -349,7 +349,7 @@ int32_t open(const uint8_t* filename){
  *	Return: 0 on success, -1 on failure
  *	Side Effects: Changes an entry in the file array to unused
  */
-int32_t close(int32_t fd) {
+int32_t close(int32_t fd, const uint8_t* filename, int32_t nbytes) {
 	/* Check for invalid file descriptor */
 	if(fd < 2 || fd > 7) {
 		return -1;

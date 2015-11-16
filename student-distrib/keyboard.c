@@ -111,7 +111,6 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 	i = 0; //reset buffer and cursor values
 	allow_read = 0;
 	screen_x = 0;
-	terminal_write(0, buf, nbytes);
 	return j; //return nbytes success
 }
 

@@ -366,8 +366,9 @@ sys_call_handler:
 	pushl	%edx
 	pushl	%ecx
 	pushl	%ebx
+	addl	$-1, %eax
 	cmpl	$9, %eax
-	ja		done
+	ja		err
 	call	*operations(, %eax, 4)
 done:
 	popl	%ebx
@@ -377,6 +378,9 @@ done:
 	popl	%edi
 	popl	%ebp
 	iret
+err:
+	movl	$-1, %eax
+	jmp		done
 operations:
 	.long	halt, execute, read, write, open, close #, getargs, vidmap, set_hanlder, sigreturn
 

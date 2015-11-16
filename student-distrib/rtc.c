@@ -115,7 +115,7 @@ uint32_t setFreq(int32_t freq)
  * Inputs: none
  * Retvals: none
  */
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes, int32_t open_process) 
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes) 
 {
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
