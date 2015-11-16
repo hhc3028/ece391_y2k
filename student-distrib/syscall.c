@@ -266,7 +266,7 @@ int32_t halt(uint8_t status)
 	uint32_t page_addr;
 	page_addr = (uint32_t)(&pageDirct[process_control_block->parent_process_number]);
 	asm volatile (
-			"movl page_dir_addr, %%eax        ;"
+			"movl page_addr, %%eax        ;"
 			"andl $0xFFFFFFE7, %%eax          ;"
 			"movl %%eax, %%cr3                ;"
 			"movl %%cr4, %%eax                ;"
