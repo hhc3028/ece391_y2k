@@ -19,6 +19,9 @@ extern uint32_t to_user_space();
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0;
 
+/* Flags that indicate the currently opened processes */
+static uint8_t processes = 0x80;
+
 /*
  *execute()
  *this system call attempts to load and execute a new program, handing off the processor to the new
@@ -43,10 +46,11 @@ int32_t execute(const uint8_t * command)
 	uint32_t i;
 	uint32_t entry_point = 0;
 	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
-	uint8_t open_process;
 	uint32_t first_space_reached;
 	uint32_t length_of_fname;
 	uint8_t arg_buffer[BUF_MAX];
+	uint8_t bitmask = 0x80;
+	uint8_t next_process = 0;
 	
 	for(i = 0; i < 32; i++) {
 		fname[i] = '\0';
@@ -105,11 +109,20 @@ int32_t execute(const uint8_t * command)
 		return -1;
 	}
 
+	/* check for open slot for process?*/
+/*	while(processes & bitmask) {
+		if(bitmask != 0x00) {
+			next_process++;
+			bitmask >> 1;
+		}
+		else {
+			return -1;
+		}
+	}*/
+
 	/*set up page directory? */
 	new_page_dirct(open_process);
 	flush_tlb();
-
-	/* check for open slot for process?*/
 
 	//instruction start at byte 24-27
 	if(filesystem_read(fname, instruction_offset, buffer, 4) <= 0)
@@ -172,18 +185,10 @@ int32_t execute(const uint8_t * command)
 
 	process_control_block->ebp = temp_ebp;
 	process_control_block->esp = temp_esp;
-	temp_ebp = _8MB;
+	temp_ebp = _8MB + _4MB - 4;
 	//initialize stdin and stdout
 	open((uint8_t *) "stdin");
 	open((uint8_t *) "stdout");
-
-	asm volatile (
-		"movl	%0, %%ecx					;"
-		"pushl	%%ecx						"
-			:/* no output */
-			:"g" ((temp_ebp))
-			: "ecx");
-
 
 	asm volatile (
 		"movl	%0, %%ebx					;"
@@ -287,8 +292,8 @@ int32_t open(const uint8_t* filename){
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = terminal_read;
 			process_control_block->fd[0].fop_ptr.write = NULL;
-			process_control_block->fd[0].fop_ptr.close = terminal_read;
-			process_control_block->fd[0].fop_ptr.open = terminal_read;
+			process_control_block->fd[0].fop_ptr.close = terminal_close;
+			process_control_block->fd[0].fop_ptr.open = terminal_open;
 			process_control_block->fd[0].flags = IN_USE;
 			process_control_block->fd[0].file_position = 0;
 			process_control_block->fd[0].inode_ptr = NULL;
@@ -305,8 +310,8 @@ int32_t open(const uint8_t* filename){
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;
 			process_control_block->fd[1].fop_ptr.write = terminal_write;
-			process_control_block->fd[1].fop_ptr.close = terminal_write;
-			process_control_block->fd[1].fop_ptr.open = terminal_write;
+			process_control_block->fd[1].fop_ptr.close = terminal_close;
+			process_control_block->fd[1].fop_ptr.open = terminal_open;
 			process_control_block->fd[1].flags = IN_USE;
 			process_control_block->fd[1].file_position = 0;
 			process_control_block->fd[1].inode_ptr = NULL;
@@ -386,20 +391,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	/* Call the read for the function */
-	/* Check the type of file and close */
-	switch(process_control_block->file_type[fd]) {
-		case '0' :
-			return process_control_block->fd[fd].fop_ptr.read();
-		case '1' :
-			return process_control_block->fd[fd].fop_ptr.read(buf);
-		case '2' :
-			return process_control_block->fd[fd].fop_ptr.read(process_control_block->filenames[fd], process_control_block->fd[fd].file_position, buf, nbytes);
-		case '3' :
-			return process_control_block->fd[fd].fop_ptr.read(buf, nbytes);
-		default :
-			return -1;
-	}
+	return process_control_block->fd[fd].fop_ptr.read(fd, buf, nbytes, open_process);
 }
 
 
@@ -425,18 +417,5 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	/* Call the read for the function */
-	/* Check the type of file and close */
-	switch(process_control_block->file_type[fd]) {
-		case '0' :
-			return process_control_block->fd[fd].fop_ptr.write(buf, nbytes);
-		case '1' :
-			return process_control_block->fd[fd].fop_ptr.write();
-		case '2' :
-			return process_control_block->fd[fd].fop_ptr.write();
-		case '4' :
-			return process_control_block->fd[fd].fop_ptr.write(buf, nbytes);
-		default :
-			return -1;
-	}
+	return process_control_block->fd[fd].fop_ptr.write(fd, buf, nbytes);
 }

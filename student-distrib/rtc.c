@@ -115,7 +115,7 @@ uint32_t setFreq(int32_t freq)
  * Inputs: none
  * Retvals: none
  */
-int32_t rtc_read(void) 
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes, int32_t open_process) 
 {
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
@@ -140,7 +140,7 @@ int32_t rtc_read(void)
  * n: number of bytes written
  */
 
-int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
+int32_t rtc_write(int32_t fd, int32_t * set_freq, int32_t nbytes)
 {
 	int32_t freq;
 

@@ -3,6 +3,7 @@
 #include "file_system.h"
 #include "lib.h"
 #include "x86_desc.h"
+#include "syscall.h"
 
 uint32_t boot_block_addr;					// stores the address of the boot block
 
@@ -407,8 +408,11 @@ void test_file_systems(const uint8_t* fname)
 
 /* File Operations */
 
-int32_t read_file(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_t length)
+int32_t read_file(int32_t fd, uint8_t* buf, int32_t length, int32_t open_process)
 {
+	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	uint32_t position = process_control_block->fd[fd].file_position;
+	int8_t * fname = process_control_block->filenames[fd];
 	dentries_t test_dentry;
 	uint32_t pass_fail = read_dentry_by_name((uint8_t *) fname, &test_dentry);
 
@@ -438,7 +442,7 @@ int32_t read_file(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_
 		/* If the file is a directory */
 		else if(test_dentry.file_type == TYPE_DIR)
 		{
-			return read_dir(buf);
+			return read_dir(fd, buf, length, open_process);
 		}
 		/* Otherwise just return 0 */
 		else
@@ -446,10 +450,10 @@ int32_t read_file(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_
 			return 0;
 		}
 	}
-
+	return 0;
 }
 
-int32_t write_file()
+int32_t write_file(int32_t fd, const void* buf, int32_t nbytes)
 {
 	return -1;
 }
@@ -484,7 +488,7 @@ int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t fi
 
 /* Directory Operations */
 
-int32_t read_dir(uint8_t* buf)
+int32_t read_dir(int32_t fd, uint8_t* buf, int32_t nbytes, int32_t open_process)
 {
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
@@ -506,7 +510,7 @@ int32_t read_dir(uint8_t* buf)
 	return length_read;
 }
 
-int32_t write_dir(void)
+int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes)
 {
 	return -1;
 }

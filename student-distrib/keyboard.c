@@ -88,7 +88,7 @@ void initialize_keyboard() {
 			nbytes = size of the data to be put in
 	returns nbytes successfully read
 */
-int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
+int32_t terminal_read(int32_t fd, unsigned char * buffer, int32_t nbytes)
 {
 	int j; //counter variable
 	while(!allow_read) //lock until ENTER
@@ -111,7 +111,7 @@ int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
 	i = 0; //reset buffer and cursor values
 	allow_read = 0;
 	screen_x = 0;
-	terminal_write(buf, nbytes);
+	terminal_write(0, buf, nbytes);
 	return j; //return nbytes success
 }
 
@@ -123,7 +123,7 @@ int32_t terminal_read(unsigned char * buffer, int32_t nbytes)
 	outputs the buf char array onto screen
 	
 */
-int32_t terminal_write(unsigned char * buf, int32_t nbytes)
+int32_t terminal_write(int32_t fd, unsigned char * buffer, int32_t nbytes)
 {
 	int count; //count variable
 	for(count = 0; count < nbytes; count++)
@@ -290,7 +290,7 @@ void keyboard_getchar()
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
 		allow_read = 1;
-		terminal_read(buffer, i);
+		terminal_read(0, buffer, i);
 		//s_code = 0x01;
 		break;
 	default:
@@ -391,3 +391,16 @@ void handle_max_buffer()
     outb(0x0E, 0x3D4);
     outb((unsigned char )((position >> 8) & 0xFF), 0x3D5);
  }
+
+int32_t terminal_open()
+{
+	i = 0;
+	flag = 0;
+	c_flag = 0;
+	ctrl_flag = 0;
+	int a;
+	for (a = 0; a < BUF_MAX; a++)
+		{buffer[a] = '\0';
+		buf[a] = '\0';}
+	return 0;
+}
