@@ -11,7 +11,6 @@
 #define L_SHFT_REL 0xAA
 #define BACKSPACE 0x0E
 #define ENTER 0x1C
-#define BUF_MAX 128
 #define L_KEY 0x26
 #define MAX_CHAR 90
 #define MAX_SCAN 0x58
@@ -20,7 +19,6 @@ static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
 static unsigned char buffer[BUF_MAX];
-static unsigned char terminal_buf[BUF_MAX];
 static int curr_xcoord = 0;
 static int curr_ycoord = 0;
 static int allow_read = 0;
@@ -81,7 +79,6 @@ void initialize_keyboard() {
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
-		 terminal_buf[a] = '\0';
 		}
 }
 /*
@@ -103,21 +100,15 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 	{
 		screen_y++;
 		screen_x = 0;
-	}
-	j = 0;
-	while(j < BUF_MAX)
-	{
-		terminal_buf[j] = '\0';
-		j++;
-	}
-
-	
+	}	
+	for(j = 0; j < BUF_MAX; j++)
+		buf[j] = '\0';
 	for(j = 0; j < nbytes; j++) //set terminal buffer from keyboard buffer
 	{
-		terminal_buf[j] = buf[j];
-		buf[j] = '\0';
+		buf[j] = buffer[j];
+		buffer[j] = '\0';
 	}
-
+	j = i;
 	i = 0; //reset buffer and cursor values
 	allow_read = 0;
 	//screen_x = 0;
@@ -135,6 +126,7 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
 {
 	int count; //count variable
+
 	for(count = 0; count < nbytes; count++)
 	{ //check for overflows and fix it
 		if ((screen_y < (NUM_ROWS - 2)) && (screen_x >= (NUM_COLS - 1)))
@@ -146,11 +138,12 @@ int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
 		{
 			handle_max_buffer();
 		}
-		putc(terminal_buf[count]); //print buffer
+		putc(buf[count]); //print buffer
 		//update_cursor(screen_y, screen_x);
 	}
 	if(screen_y >= (NUM_ROWS - 2)) //check for overflow after finished printing
 		handle_max_buffer();
+	
 
 	//update_cursor(screen_y, screen_x);
 	return count; //return successful nbytes
@@ -295,14 +288,9 @@ void keyboard_getchar()
 	case(ENTER):
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
+		buffer[i] = '\n';
+		i++;
 		allow_read = 1;
-		terminal_read(0, buffer, i);
-		if(screen_y < (NUM_ROWS - 2))
-		{
-			putc('\n');
-		}
-		else
-			handle_max_buffer();
 		break;
 	default:
 	if(ctrl_flag == 0)
@@ -362,6 +350,9 @@ int32_t terminal_close()
 */
 void handle_max_buffer()
 {
+	int j;
+for(j = 0; j < 2; j++)
+{
 	for(screen_y = 0; screen_y < NUM_ROWS; screen_y++) //nested loop to get all positions
 	{
 		for(screen_x = 0; screen_x < NUM_COLS; screen_x++)
@@ -378,8 +369,9 @@ void handle_max_buffer()
 		    } // switch everything up by one row
 		}
 	}
+}
 	//reset the cursor so it will be set properly
-	screen_y = NUM_ROWS - 2;
+	screen_y = NUM_ROWS - 3;
 	screen_x = 0;
 	if(i != 0)
 		curr_ycoord--;
@@ -412,7 +404,6 @@ int32_t terminal_open()
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
-		terminal_buf[a] = '\0';
 		}
 	return 0;
 }

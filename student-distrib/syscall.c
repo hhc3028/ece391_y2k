@@ -18,7 +18,7 @@ extern uint32_t to_user_space();
 extern uint32_t halt_ret_label();
 
 /* Flags that indicate the currently opened processes */
-static uint8_t processes = 0x80;
+static uint8_t processes = 0x00;
 
 /*
  *execute()
@@ -48,7 +48,7 @@ int32_t execute(const uint8_t * command)
 	uint32_t length_of_fname;
 	uint8_t arg_buffer[BUF_MAX];
 	uint8_t bitmask = 0x80;
-	uint8_t next_process = 0;
+	uint8_t new_process = 0;
 	
 	for(i = 0; i < 32; i++) {
 		fname[i] = '\0';
@@ -107,19 +107,19 @@ int32_t execute(const uint8_t * command)
 		return -1;
 	}
 
-	/* check for open slot for process?*/
-/*	while(processes & bitmask) {
+	/* check for open slot for process */
+	while(processes & bitmask) {
 		if(bitmask != 0x00) {
-			next_process++;
-			bitmask >> 1;
+			new_process++;
+			bitmask = bitmask >> 1;
 		}
 		else {
 			return -1;
 		}
-	}*/
+	}
 
 	/*set up page directory? */
-	new_page_dirct(open_process);
+	new_page_dirct(new_process);
 	flush_tlb();
 
 	//instruction start at byte 24-27
@@ -138,26 +138,38 @@ int32_t execute(const uint8_t * command)
 	filesystem_load(fname, process_ld_addr);
 
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
-	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	pcb_t * parent_process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
 	asm volatile ("				\
 		movl %%ebp, %0		   ;\
 		movl %%esp, %1		   ;\
-			" : "=a" ((process_control_block->parent_kbp)), "=b" ((process_control_block->parent_ksp))	\
+			" : "=a" ((parent_process_control_block->ebp)), "=b" ((parent_process_control_block->esp))	\
 			  : /* no inputs */																			\
 			  : "ebp", "esp");																			\
 
-	if(open_process == 0)
+	pcb_t * process_control_block;
+
+	if(new_process == 0)
 	{
-		process_control_block->parent_process_number = 0;
-		process_control_block->process_number = 0;
+		process_control_block = parent_process_control_block;
+		process_control_block->parent_process_number = new_process;
+		process_control_block->process_number = new_process;
+		process_control_block->parent_ebp = 0;
+		process_control_block->parent_esp = 0;
 	}
 
 	else
-	{	//set parent process number of the new process to the parent 
-		process_control_block->parent_process_number = ((pcb_t *)(process_control_block->parent_ksp & offset))->process_number;
+	{	
+		process_control_block = (pcb_t *)(_8MB - (_8KB)*(new_process +1));
+		//set parent process number of the new process to the parent 
+		process_control_block->parent_process_number = open_process;
 		//mark that the parent process has sub process
-		((pcb_t *)(process_control_block->parent_ksp & offset))->has_child = 1;
+		parent_process_control_block->has_child++;
+		process_control_block->parent_process_number = open_process;
+		process_control_block->process_number = new_process;
+		process_control_block->parent_ebp = parent_process_control_block->ebp;
+		process_control_block->parent_esp = parent_process_control_block->esp;
+		open_process = new_process;
 	}
 
 	//initialize the file descritor in PCB
@@ -226,38 +238,14 @@ int32_t halt(uint8_t status)
 		return -1;
 		//break;
 	}
-
-/* restart the process
-
-	uint8_t buffer[4];
-	uint32_t entry_point;
-
-	//checking for validity
-	if(filesystem_read((const int8_t *)("shell"), instruction_offset, buffer, 4) <= 0)
-	{
-		return -1;
-	}
-	
-	//get the entry point
-	for( i = 0; i < 4; i++ )
-	{
-		entry_point |= (buffer[i] << 8 * i);
-	}
-		
-	//jump to instruction
-	return_to_user(entry_point);
-
-	}
-*/
-
-
 	
 	//set the current process to 0 to mark it done so other process can take this slot
-
+	processes &= ~(0x80 >> open_process);
 
 	//set parent process to has no child and update ksp and kbp
 	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
-	parent_pcb->has_child = 0;
+	parent_pcb->has_child--;
+	open_process = process_control_block->parent_process_number;
 
 
 	//load page directory of parent
@@ -266,26 +254,23 @@ int32_t halt(uint8_t status)
 	
 
 	//set kernel stack bottom and tss to parent's kernel stack
-	uint32_t temp_ebp, temp_esp;
-	temp_ebp = tss.ebp;
-	temp_esp = tss.esp;
 	tss.esp0 = (_8MB - (_8KB)*(process_control_block->parent_process_number) - 4);
-
-
 
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
 	uint32_t temp_status = status;
 
 	asm volatile(
-			"movl	%0, %%esp				;"
-			"pushl	%1						;"
-			"movl	%0, %%ebp 				;"				
-			"popl	%%eax					;"
-			"jmp	halt_ret_label			"
-			:
-			:"g"(process_control_block->parent_ksp),"g"(temp_status), "g"(process_control_block->parent_kbp)
-			:"esp", "ebp", "eax");
+		"movl	%0, %%eax				;"
+		"movl	%%eax, %%esp			;"
+		"pushl	%1						;"
+		"movl	%2, %%eax				;"
+		"movl	%%eax, %%ebp 			;"				
+		"popl	%%eax					;"
+		"jmp	halt_ret_label			"
+			: /* No Outputs */
+			: "g"(process_control_block->parent_esp),"g"(temp_status), "g"(process_control_block->parent_ebp)
+			: "esp", "ebp", "eax");
 
 	return 0;
 }

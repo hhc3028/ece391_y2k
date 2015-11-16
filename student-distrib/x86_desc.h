@@ -185,9 +185,8 @@ typedef struct pcb_t {
 	file_descriptor_t fd[8];
 	int8_t filenames[8][32];
 	int32_t file_type[8];
-	uint32_t parent_kbp;
-	uint32_t parent_ksp;
-	uint32_t parent_ss;
+	uint32_t parent_ebp;
+	uint32_t parent_esp;
 	uint8_t process_number;
 	uint8_t parent_process_number;
 	uint8_t arg_buf[100];
