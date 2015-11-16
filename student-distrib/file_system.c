@@ -320,9 +320,9 @@ int32_t read_data(uint32_t inode, uint32_t position, uint8_t* buf, uint32_t leng
 		buffer_index++;
 	}
 	
-	printf("\n");
-	printf("Length Read: %d\n", length);
-	printf("Total Size of File: %u\n", file_length);
+	//printf("\n");
+	//printf("Length Read: %d\n", length);
+	//printf("Total Size of File: %u\n", file_length);
 	return length;
 }
 
