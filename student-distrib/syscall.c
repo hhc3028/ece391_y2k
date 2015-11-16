@@ -11,9 +11,10 @@
 #include "keyboard.h"
 #include "interrupt.h"
 #include "file_system.h"
+#include "paging.h"
 
 /* Artificial IRET */
-extern uint32_t to_user_space(uint32_t entry_point);
+extern uint32_t to_user_space();
 
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0;
@@ -45,9 +46,11 @@ int32_t execute(const uint8_t * command)
 	uint8_t open_process;
 	uint32_t first_space_reached;
 	uint32_t length_of_fname;
-	uint8_t arg_buffer[buf_max];
+	uint8_t arg_buffer[BUF_MAX];
 	
-
+	for(i = 0; i < 32; i++) {
+		fname[i] = '\0';
+	}
 
 	//check to see if the command is invalid
 	if(command == NULL)
@@ -91,7 +94,7 @@ int32_t execute(const uint8_t * command)
 	
 	//read the first 4 bytes of the file to check if it's executable or not
 	//and store in buffer
-	if(filesystem_read(*fname, 0, buffer, 4) != 0)
+	if(filesystem_read(fname, 0, buffer, 4) <= 0)
 	{
 		return -1;
 	}
@@ -106,7 +109,7 @@ int32_t execute(const uint8_t * command)
 	/* check for open slot for process?*/
 
 	//instruction start at byte 24-27
-	if(filesystem_read(*fname, instruction_offset, buffer, 4) != 0)
+	if(filesystem_read(fname, instruction_offset, buffer, 4) <= 0)
 	{
 		return -1;
 	}
@@ -119,22 +122,25 @@ int32_t execute(const uint8_t * command)
 
 
 	/*set up page directory? */
+	uint32_t page_direct = new_page_dirct(open_process);
+
+	/* Load the page directory and flush TLB */
+	load_paging_dirct(page_direct);
 
 	//load process to the starting address
-	filesystem_load(*fname, process_ld_addr);
+	filesystem_load(fname, process_ld_addr);
 
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
-	//store esp and ebp
-	uint32_t ebp, esp;
+	asm volatile ("				\
+		movl %%ebp, %0		   ;\
+		movl %%esp, %1		   ;\
+			" : "=a" ((process_control_block->parent_kbp)), "=b" ((process_control_block->parent_ksp))	\
+			  : /* no inputs */																			\
+			  : "ebp", "esp");																			\
 
-	asm volatile(movl %%ebp, ebp);
-	process_control_block->parent_kbp = ebp;
-	asm volatile(movl %%esp, esp);
-	process_control_block->parent_ksp = esp;
-
-	if(/*first call process*/)
+	if(open_process == 0)
 	{
 		process_control_block->parent_process_number = 0;
 		process_control_block->process_number = 1;
@@ -142,19 +148,21 @@ int32_t execute(const uint8_t * command)
 
 	else
 	{	//set parent process number of the new process to the parent 
-		process_control_block->parent_process_number = ((pcb_t *)(esp & offset))->process_number;
+		process_control_block->parent_process_number = ((pcb_t *)(process_control_block->parent_ksp & offset))->process_number;
 		//mark that the parent process has sub process
-		((pcb_t *)(esp & offset))->has_child = 1;
-
-
+		((pcb_t *)(process_control_block->parent_ksp & offset))->has_child = 1;
 	}
 
 	//initialize the file descritor in PCB
 	for(i = 0; i < 8; i++)
 	{
-		process_control_block->fd[i].inode = 0;
-		process_control_block->fd[i].flag = NOT_IN_USE;
-		process_control_block->fd[i].fileposition = 0;
+		process_control_block->fd[i].inode_ptr = NULL;
+		process_control_block->fd[i].flags = NOT_IN_USE;
+		process_control_block->fd[i].file_position = 0;
+		process_control_block->fd[i].fop_ptr.read = NULL;
+		process_control_block->fd[i].fop_ptr.write = NULL;
+		process_control_block->fd[i].fop_ptr.close = NULL;
+		process_control_block->fd[i].fop_ptr.open = NULL;
 	}
 
 	//store exxtra arg into pcb buffer for arg
@@ -169,12 +177,9 @@ int32_t execute(const uint8_t * command)
 	open((uint8_t *) "stdout");
 
 	//jump to entry point to execute
-	to_user_space(entry_point);
+	return_to_user(entry_point);
 
 	return 0;
-
-
-
 }
 
 
@@ -193,11 +198,9 @@ int32_t execute(const uint8_t * command)
 
 
 int32_t halt(uint8_t status)
-{
-	int i;
-
+{/*
 	//get the PCB
-	pcb_t * process_control_block = (pcb_t *)(kernel_stack_bottom & offset);
+	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
 	//if the user try to close the only shell being operated on then stop them
 	//we can either reset the shell (get the entry point and jump to it) or we can ignore it
@@ -205,7 +208,7 @@ int32_t halt(uint8_t status)
 	if(process_control_block->parent_process_number == 0)
 	{
 		return -1;
-		break;
+		//break;
 	}
 
 
@@ -227,21 +230,19 @@ int32_t halt(uint8_t status)
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
 	uint32_t temp_status = status;
-	asm volatile("movl process_control_block->parent_ksp, %%esp");
-	asm volatile("pushl %temp_status");
-	asm volatile("movl process_control_block->parent_kbp, %%ebp");
-
-	//return status
-	asm volatile("popl %eax");
-
-	asm volatile("leave");
-	asm volatile("ret");
+*/
+//	asm volatile ("					\
+//		movl	%%ebx, %%esp		   ;\
+//		pushl	%0				   ;\
+//		movl	%%ecx, %%ebp		   ;\
+//		popl	%%eax			   ;\
+//		leave					   ;\
+//		ret							\
+//			" : /* no outputs */																								\
+//			  : "ebx" (process_control_block->parent_kbp), "ecx" (process_control_block->parent_ksp), "e" ((temp_status))		\
+//			  : "memory", "ebx", , "ecx", "esp", "ebp", "eax");																	\
 
 	return 0;
-
-
-
-
 }
 
 
@@ -267,7 +268,7 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
-	if(strncmp((const int8_t*)filename, "stdin", 5)) {
+	if(strncmp((const int8_t*)filename, "stdin", 5) != 0) {
 		if(process_control_block->filenames[0] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
 			process_control_block->fd[0].fop_ptr.read = terminal_read;
@@ -285,7 +286,7 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
-	if(strncmp((const int8_t*)filename,"stdout", 6)) {
+	if(strncmp((const int8_t*)filename,"stdout", 6) != 0) {
 		if(process_control_block->filenames[1] == NULL) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
 			process_control_block->fd[1].fop_ptr.read = NULL;

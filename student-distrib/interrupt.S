@@ -25,7 +25,13 @@
 .globl	exception_machine_wrapper
 .globl	exception_reserved_wrapper
 .globl	sys_call_handler
+.globl	return_to_user
 .align	4
+USER_CS:
+	.long 0x0023
+USER_DS:
+	.long 0x002B
+
 
 # Assembly linkage to the keyboard interrupt handler
 keyboard_wrapper:
@@ -376,7 +382,7 @@ done:
 	popl	%ebp
 	iret
 operations:
-	.long	halt, execute, read, write, open, close, getargs, vidmap, set_hanlder, sigreturn
+	.long	halt, execute, read, write, open, close #, getargs, vidmap, set_hanlder, sigreturn
 
 #
 #	return_to_user

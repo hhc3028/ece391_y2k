@@ -337,17 +337,17 @@ void init_idt() {
 	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_alignment_wrapper, KERNEL_CS, PRES_EXCEPT);
 	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)exception_machine_wrapper, KERNEL_CS, PRES_EXCEPT);
 	/* Initialize the next reserved idt descriptors which occupies 0x13 to 0x1F of the IDT */
-	for(; i < 0x20; i++) {
+	for(i = i; i < 0x20; i++) {
 		IDT_ENTRY_SETUP(&idt[i], (uint32_t)exception_reserved_wrapper, KERNEL_CS, RESERVED);
 	}
 	/* Initialize the next idt descriptors to be generic non-present interrupts up to 0x80 */
-	for(; i < 0x80; i++) {
+	for(i = i; i < 0x80; i++) {
 		IDT_ENTRY_SETUP(&idt[i], (uint32_t)isr_wrapper, KERNEL_CS, GENERIC);
 	}
 	/* IDT entry for system calls */
 	IDT_ENTRY_SETUP(&idt[i++], (uint32_t)sys_call_handler, KERNEL_CS, SYS_CALL);
 	/* Initialize the rest of the idt descriptors to be generic non-present interrupts up to 0xFF */
-	for(; i < 0xFF; i++) {
+	for(i = i; i < 0xFF; i++) {
 		IDT_ENTRY_SETUP(&idt[i], (uint32_t)isr_handler, KERNEL_CS, GENERIC);
 	}
 

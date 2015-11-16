@@ -30,17 +30,17 @@ void init_file_systems(uint32_t address);
 int32_t filesystem_load(const uint8_t* fname, uint32_t address);
 int32_t filesystem_open(uint32_t address);
 int32_t filesystem_close(void);
-int32_t filesystem_read(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length);
+int32_t filesystem_read(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_t length);
 int32_t filesystem_write(void);
 
 /* File System Utilies */
 int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry);
 int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry);
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+int32_t read_data(uint32_t inode, uint32_t position, uint8_t* buf, uint32_t length);
 
 /* File Operations */
 int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file);
-int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length);
+int32_t read_file(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_t length);
 int32_t write_file(void);
 int32_t close_file(pcb_t * process_control_block, int32_t file_num);
 

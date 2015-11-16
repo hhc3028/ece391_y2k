@@ -115,7 +115,7 @@ uint32_t setFreq(int32_t freq)
  * Inputs: none
  * Retvals: none
  */
-uint32_t rtc_read(void) 
+int32_t rtc_read(void) 
 {
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
@@ -171,13 +171,13 @@ int32_t rtc_write(int32_t * set_freq, int32_t nbytes)
  * Retvals: 0
  */
 
-uint32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
+int32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
 {
 	strcpy((int8_t*)process_control_block->filenames[file_num], "rtc");
-	process_control_block->fd[file_num].fop_ptr.read = (int32_t*)rtc_read;
-	process_control_block->fd[file_num].fop_ptr.write = (int32_t*)rtc_write;
-	process_control_block->fd[file_num].fop_ptr.close = (int32_t*)rtc_close;
-	process_control_block->fd[file_num].fop_ptr.open = (int32_t*)rtc_open;
+	process_control_block->fd[file_num].fop_ptr.read = rtc_read;
+	process_control_block->fd[file_num].fop_ptr.write = rtc_write;
+	process_control_block->fd[file_num].fop_ptr.close = rtc_close;
+	process_control_block->fd[file_num].fop_ptr.open = rtc_open;
 	process_control_block->fd[file_num].flags = IN_USE;
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = NULL;
@@ -193,7 +193,7 @@ uint32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
  * Inputs: none
  * Retvals: 0 
  */
-uint32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
+int32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
 {
 	strcpy((int8_t*)process_control_block->filenames[file_num], NULL);
 	process_control_block->fd[file_num].fop_ptr.read = NULL;
@@ -204,6 +204,7 @@ uint32_t rtc_close(pcb_t * process_control_block, int32_t file_num)
 	process_control_block->fd[file_num].file_position = 0;
 	process_control_block->fd[file_num].inode_ptr = NULL;
 	process_control_block->file_type[file_num] = -1;
+	return 0;
 }
 /*
 This helper function return a flag indicate if the given number is power of 2.

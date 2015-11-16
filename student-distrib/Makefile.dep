@@ -12,4 +12,4 @@ lib.o: lib.c lib.h types.h keyboard.h
 paging.o: paging.c x86_desc.h types.h paging.h lib.h
 rtc.o: rtc.c rtc.h types.h x86_desc.h i8259.h lib.h syscall.h
 syscall.o: syscall.c syscall.h types.h lib.h rtc.h x86_desc.h keyboard.h \
-  interrupt.h file_system.h
+  interrupt.h file_system.h paging.h

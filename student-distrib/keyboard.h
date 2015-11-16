@@ -11,8 +11,9 @@
 #define KEY_PORT 0x60
 #define STATUS_PORT 0x64
 #define KEYBOARD_IRQ 0x01
+#define BUF_MAX 128
 
-unsigned char buf[128];
+unsigned char buf[BUF_MAX];
 int i;
 
 void initialize_keyboard(void);

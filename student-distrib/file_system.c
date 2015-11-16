@@ -140,7 +140,7 @@ int32_t filesystem_close(void)
 *	RETURN VALUE:	return -1 (Fail), return READ_DATA (the amount of bytes read)
 *	SIDE EFFECT:	Copies the file corresponding to fname and copies it into buf
 */
-int32_t filesystem_read(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length)
+int32_t filesystem_read(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_t length)
 {
 	if(buf == NULL)			// check if there is a valid buffer
 	{
@@ -160,7 +160,7 @@ int32_t filesystem_read(const uint8_t* fname, uint32_t offset, uint8_t* buf, uin
 	if(is_valid == 0)		// if the copy was a success
 	{
 		// read the number of bytes read and copy into the buffer
-		return read_data(fs_dentry.inode_num, offset, buf, length);
+		return read_data(fs_dentry.inode_num, position, buf, length);
 	}
 	else					// if the copy was unsuccessful
 		return -1;			// return -1 (Fail)
@@ -271,7 +271,7 @@ int32_t read_dentry_by_index(uint32_t index, dentries_t* dentry)
 *	SIDE EFFECT:	reads file from index node starting at offset and places the # of bytes read
 *					into the buff bfore returning 0 on success
 */
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
+int32_t read_data(uint32_t inode, uint32_t position, uint8_t* buf, uint32_t length)
 {
 	/*dentries_t curr_dentry;							// holds the ptr to inode
 	if(read_dentry_by_index(inode, &curr_dentry) == -1)
@@ -289,25 +289,25 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	}
 
 	/* Check if the starting point is out of range */
-	if(file_length <= offset)						// if the offset starts beyond the file length
+	if(file_length <= position)						// if the offset starts beyond the file length
 	{
 		return SUCCESS;									// return success and dont include anything into the buffer
 	}
 
 	/* Fix the length if it goes over the actual File length */
-	uint32_t length_to_read = file_length - offset;				// get the amount to read
+	uint32_t length_to_read = file_length - position;				// get the amount to read
 	if(length_to_read < length)									// if the length is longer than the amount to read
 	{
 		length = length_to_read;								// length is changed to the amount to actually read
 	}
 
 
-	uint32_t start_index = offset / FOUR_KB_SIZE;
+	uint32_t start_index = position / FOUR_KB_SIZE;
 	uint32_t buffer_index = 0;
 	data_block_t * cur_dblock = data_blocks + curr_inode->dblock[start_index];
 
 	uint32_t i;													// variable to keep track of which dblock we are on
-	for(i = offset; i < length + offset; i++) 
+	for(i = position; i < length + position; i++) 
 	{
 		if((i / FOUR_KB_SIZE) > start_index) 
 		{
@@ -407,7 +407,7 @@ void test_file_systems(const uint8_t* fname)
 
 /* File Operations */
 
-int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t length)
+int32_t read_file(const uint8_t* fname, uint32_t position, uint8_t* buf, uint32_t length)
 {
 	dentries_t test_dentry;
 	uint32_t pass_fail = read_dentry_by_name((uint8_t *) fname, &test_dentry);
@@ -433,7 +433,7 @@ int32_t read_file(const uint8_t* fname, uint32_t offset, uint8_t* buf, uint32_t 
 		/* If the File is a regular file, call read data */
 		if(test_dentry.file_type == TYPE_REGULAR)
 		{
-			return read_data(test_dentry.inode_num, offset, buf, length);
+			return read_data(test_dentry.inode_num, position, buf, length);
 		}
 		/* If the file is a directory */
 		else if(test_dentry.file_type == TYPE_DIR)

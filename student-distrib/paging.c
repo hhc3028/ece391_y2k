@@ -56,7 +56,7 @@ uint32_t new_page_dirct(uint8_t process_number) {
 	pageDirct[0] |= (((unsigned int) pageTable) & 0xFFFFF000) | enable_present;		// set the present bit for the video
 	pageDirct[1] |= (0x400000) | enable_present | enable_global | enable_4MB;	// set the present bit for the kernel as well as the 4MB bit
 	pageDirct[32] |= ((process_number + 1) << 22) | enable_present | enable_4MB | enable_user;	// set the present bit for the task as well as the 4MB bit and user bit
-	return &pageDirct[32];
+	return (uint32_t)&pageDirct[32];
 }
 
 void enable_paging()
