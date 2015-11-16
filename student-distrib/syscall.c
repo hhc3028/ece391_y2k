@@ -216,7 +216,7 @@ int32_t execute(const uint8_t * command)
 
 
 int32_t halt(uint8_t status)
-{/*
+{
 	//get the PCB
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
@@ -229,37 +229,95 @@ int32_t halt(uint8_t status)
 		//break;
 	}
 
+/* restart the process
+
+	uint8_t buffer[4];
+	uint32_t entry_point;
+
+	//checking for validity
+	if(filesystem_read((const int8_t *)("shell"), instruction_offset, buffer, 4) <= 0)
+	{
+		return -1;
+	}
+	
+	//get the entry point
+	for( i = 0; i < 4; i++ )
+	{
+		entry_point |= (buffer[i] << 8 * i);
+	}
+		
+	//jump to instruction
+	return_to_user(entry_point);
+
+	}
+*/
 
 
+	
 	//set the current process to 0 to mark it done so other process can take this slot
 
 
-	//set parent process to has no child
+	//set parent process to has no child and update ksp and kbp
 	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
 	parent_pcb->has_child = 0;
 
 
 	//load page directory of parent
+	uint32_t page_addr;
+	page_addr = (uint32_t)(&pageDirct[process_control_block->parent_process_number]);
+	asm volatile (
+			"movl page_dir_addr, %%eax        ;"
+			"andl $0xFFFFFFE7, %%eax          ;"
+			"movl %%eax, %%cr3                ;"
+			"movl %%cr4, %%eax                ;"
+			"orl $0x00000090, %%eax           ;"
+			"movl %%eax, %%cr4                ;"
+			"movl %%cr0, %%eax                ;"
+			"orl $0x80000000, %%eax 	      ;"
+			"movl %%eax, %%cr0                 "
+			: : : "eax", "cc" );
+	
+
 
 
 	//set kernel stack bottom and tss to parent's kernel stack
+	uint32_t temp_ebp, temp_esp;
+	temp_ebp = tss.ebp;
+	temp_esp = tss.esp;
+	tss.esp0 = (_8MB - (_8KB)*(process_control_block->parent_process_number) - 4);
+
 
 
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
 	uint32_t temp_status = status;
-*/
-//	asm volatile ("					\
-//		movl	%%ebx, %%esp		   ;\
-//		pushl	%0				   ;\
-//		movl	%%ecx, %%ebp		   ;\
-//		popl	%%eax			   ;\
-//		leave					   ;\
-//		ret							\
-//			" : /* no outputs */																								\
-//			  : "ebx" (process_control_block->parent_kbp), "ecx" (process_control_block->parent_ksp), "e" ((temp_status))		\
-//			  : "memory", "ebx", , "ecx", "esp", "ebp", "eax");																	\
+/*
+	asm volatile ("					\
+		movl	%%ebx, %%esp		   ;\
+		pushl	%0				   ;\
+		movl	%%ecx, %%ebp		   ;\
+		popl	%%eax			   ;\
+		leave					   ;\
+		ret							\
+			" : /* no outputs */			
 
+
+/*																								\
+			  : "ebx" (process_control_block->parent_kbp), "ecx" (process_control_block->parent_ksp), "e" ((temp_status))		\
+			  : "memory", "ebx", , "ecx", "esp", "ebp", "eax");																	\
+*/
+
+
+	asm volatile(
+			"movl %0, %%esp					;"
+			"pushl %1						;"
+			"movl %0, %%ebp 				;"				
+			::"g"(process_control_block->parent_ksp),"g"(temp_status), "g"(process_control_block->parent_kbp));
+
+	asm volatile("popl %eax");
+
+	asm volatile("leave");
+	asm volatile("ret");
 	return 0;
 }
 
