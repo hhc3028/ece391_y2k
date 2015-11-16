@@ -20,6 +20,7 @@ static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
 static unsigned char buffer[BUF_MAX];
+static unsigned char terminal_buf[BUF_MAX];
 static int curr_xcoord = 0;
 static int curr_ycoord = 0;
 static int allow_read = 0;
@@ -80,6 +81,7 @@ void initialize_keyboard() {
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
+		 terminal_buf[a] = '\0';
 		}
 }
 /*
@@ -102,15 +104,23 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 		screen_y++;
 		screen_x = 0;
 	}
+	j = 0;
+	while(j < BUF_MAX)
+	{
+		terminal_buf[j] = '\0';
+		j++;
+	}
+
+	
 	for(j = 0; j < nbytes; j++) //set terminal buffer from keyboard buffer
 	{
-		buf[j] = buffer[j];
-		buffer[j] = '\0';
+		terminal_buf[j] = buf[j];
+		buf[j] = '\0';
 	}
 
 	i = 0; //reset buffer and cursor values
 	allow_read = 0;
-	screen_x = 0;
+	//screen_x = 0;
 	return j; //return nbytes success
 }
 
@@ -122,7 +132,7 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 	outputs the buf char array onto screen
 	
 */
-int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
+int32_t terminal_write(int32_t fd, unsigned char * terminal_buf, int32_t nbytes)
 {
 	int count; //count variable
 	for(count = 0; count < nbytes; count++)
@@ -136,7 +146,7 @@ int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
 		{
 			handle_max_buffer();
 		}
-		putc(buf[count]); //print buffer
+		putc(terminal_buf[count]); //print buffer
 		//update_cursor(screen_y, screen_x);
 	}
 	if(screen_y >= (NUM_ROWS - 2)) //check for overflow after finished printing
@@ -287,7 +297,12 @@ void keyboard_getchar()
 		//it will need to output bufferfer and clear it after
 		allow_read = 1;
 		terminal_read(0, buffer, i);
-		s_code = 0x1C;
+		if(screen_y < (NUM_ROWS - 2))
+		{
+			putc('\n');
+		}
+		else
+			handle_max_buffer();
 		break;
 	default:
 	if(ctrl_flag == 0)
@@ -397,6 +412,7 @@ int32_t terminal_open()
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
 		{buffer[a] = '\0';
+		terminal_buf[a] = '\0';
 		}
 	return 0;
 }
