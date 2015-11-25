@@ -21,7 +21,7 @@ extern uint32_t halt_ret_label();
 static uint8_t processes = 0x00;
 
 /* Indicator for the current process we are on */
-static uint8_t open_process = 0;
+static uint8_t open_process = 0x00;
 
 /*
  *execute()
@@ -155,7 +155,7 @@ int32_t execute(const uint8_t * command)
 	if(new_process == 0)
 	{
 		process_control_block = parent_process_control_block;
-		process_control_block->parent_process_number = new_process;
+		process_control_block->parent_process_number = -1;
 		process_control_block->process_number = new_process;
 		process_control_block->parent_ebp = 0;
 		process_control_block->parent_esp = 0;
@@ -236,7 +236,7 @@ int32_t halt(uint8_t status)
 	//if the user try to close the only shell being operated on then stop them
 	//we can either reset the shell (get the entry point and jump to it) or we can ignore it
 	//for now we ignore it
-	if(process_control_block->parent_process_number == 0)
+	if(process_control_block->parent_process_number == -1)
 	{
 		return -1;
 		//break;
@@ -266,9 +266,9 @@ int32_t halt(uint8_t status)
 	asm volatile(
 		"movl	%0, %%eax				;"
 		"movl	%%eax, %%esp			;"
-		"pushl	%1						;"
 		"movl	%2, %%eax				;"
-		"movl	%%eax, %%ebp 			;"				
+		"movl	%%eax, %%ebp 			;"	
+		"pushl	%1						;"			
 		"popl	%%eax					;"
 		"jmp	halt_ret_label			"
 			: /* No Outputs */
@@ -312,7 +312,6 @@ int32_t open(const uint8_t* filename){
 			process_control_block->fd[0].flags = IN_USE;
 			process_control_block->fd[0].file_position = 0;
 			process_control_block->fd[0].inode_ptr = NULL;
-			process_control_block->file_type[0] = 3;
 			return 0;
 		}
 		else {
@@ -330,7 +329,6 @@ int32_t open(const uint8_t* filename){
 			process_control_block->fd[1].flags = IN_USE;
 			process_control_block->fd[1].file_position = 0;
 			process_control_block->fd[1].inode_ptr = NULL;
-			process_control_block->file_type[1] = 4;
 			return 1;
 		}
 		else {
@@ -346,12 +344,36 @@ int32_t open(const uint8_t* filename){
 
 	/* Check the type of file and open */
 	switch(file.file_type) {
-		case '0' :
-			return rtc_open(process_control_block, i);
-		case '1' :
-			return open_dir(process_control_block, i, file);
-		case '2' :
-			return open_file(process_control_block, i, file);
+		case 0 :
+			strcpy((int8_t*)process_control_block->filenames[i], "rtc");
+			process_control_block->fd[i].fop_ptr.read = rtc_read;
+			process_control_block->fd[i].fop_ptr.write = rtc_write;
+			process_control_block->fd[i].fop_ptr.close = rtc_close;
+			process_control_block->fd[i].fop_ptr.open = rtc_open;
+			process_control_block->fd[i].flags = IN_USE;
+			process_control_block->fd[i].file_position = 0;
+			process_control_block->fd[i].inode_ptr = NULL;
+			return i;
+		case 1 :
+			strcpy((int8_t*)process_control_block->filenames[i], file.file_name);
+			process_control_block->fd[i].fop_ptr.read = read_dir;
+			process_control_block->fd[i].fop_ptr.write = write_dir;
+			process_control_block->fd[i].fop_ptr.close = close_dir;
+			process_control_block->fd[i].fop_ptr.open = open_dir;
+			process_control_block->fd[i].fop_ptr.open(&process_control_block->fd[i].inode_ptr, file.inode_num);
+			process_control_block->fd[i].flags = IN_USE;
+			process_control_block->fd[i].file_position = 0;
+			return i;
+		case 2 :
+			strcpy((int8_t*)process_control_block->filenames[i], file.file_name);
+			process_control_block->fd[i].fop_ptr.read = read_file;
+			process_control_block->fd[i].fop_ptr.write = write_file;
+			process_control_block->fd[i].fop_ptr.close = close_file;
+			process_control_block->fd[i].fop_ptr.open = open_file;
+			process_control_block->fd[i].fop_ptr.open(&process_control_block->fd[i].inode_ptr, file.inode_num);
+			process_control_block->fd[i].flags = IN_USE;
+			process_control_block->fd[i].file_position = 0;
+			return i;
 		default :
 			return -1;
 	}
@@ -389,7 +411,6 @@ int32_t close(int32_t fd) {
 	process_control_block->fd[fd].flags = NOT_IN_USE;
 	process_control_block->fd[fd].file_position = 0;
 	process_control_block->fd[fd].inode_ptr = NULL;
-	process_control_block->file_type[fd] = -1;
 
 	return 0;
 }
@@ -415,9 +436,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	uint32_t position = process_control_block->fd[fd].file_position;
-	int8_t * fname = process_control_block->filenames[fd];
-	return process_control_block->fd[fd].fop_ptr.read(fname, &position, buf, nbytes);
+	return process_control_block->fd[fd].fop_ptr.read(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
 }
 
 
@@ -434,7 +453,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 		return -1;
 	}
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
-	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process + 1));
 
 	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
@@ -443,7 +462,5 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 		return -1;
 	}
 
-	uint32_t position = process_control_block->fd[fd].file_position;
-	int8_t * fname = process_control_block->filenames[fd];
-	return process_control_block->fd[fd].fop_ptr.read(fname, &position, buf, nbytes);
+	return process_control_block->fd[fd].fop_ptr.write(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
 }

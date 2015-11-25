@@ -4,7 +4,6 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "lib.h"
-#include "syscall.h"
 #include "x86_desc.h"
 
 //flag to indicate interrupt occured for RTC
@@ -115,7 +114,7 @@ uint32_t setFreq(int32_t freq)
  * Inputs: none
  * Retvals: none
  */
-int32_t rtc_read(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length) 
+int32_t rtc_read(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t length) 
 {
 	
 	while (interrupt_flag == 0);						//keep waiting before interupt happens
@@ -140,7 +139,7 @@ int32_t rtc_read(int8_t * fname, int32_t * position, uint8_t* buf, int32_t lengt
  * n: number of bytes written
  */
 
-int32_t rtc_write(int8_t * fname, int32_t * position, uint8_t* set_freq, int32_t nbytes)
+int32_t rtc_write(int8_t * fname, int32_t * position, const uint8_t* set_freq, int32_t nbytes)
 {
 	int32_t freq;
 
@@ -171,21 +170,10 @@ int32_t rtc_write(int8_t * fname, int32_t * position, uint8_t* set_freq, int32_t
  * Retvals: 0
  */
 
-int32_t rtc_open(pcb_t * process_control_block, int32_t file_num)
+int32_t rtc_open()
 {
-	strcpy((int8_t*)process_control_block->filenames[file_num], "rtc");
-	process_control_block->fd[file_num].fop_ptr.read = rtc_read;
-	process_control_block->fd[file_num].fop_ptr.write = rtc_write;
-	process_control_block->fd[file_num].fop_ptr.close = rtc_close;
-	process_control_block->fd[file_num].fop_ptr.open = rtc_open;
-	process_control_block->fd[file_num].flags = IN_USE;
-	process_control_block->fd[file_num].file_position = 0;
-	process_control_block->fd[file_num].inode_ptr = NULL;
-	process_control_block->file_type[file_num] = 0;
-	
 	setFreq(2);
-	
-	return file_num;
+	return 0;
 }
 
 /*
@@ -204,7 +192,7 @@ int32_t rtc_close()
 This helper function return a flag indicate if the given number is power of 2.
 Taken from http://www.exploringbinary.com/ten-ways-to-check-if-an-integer-is-a-power-of-two-in-c/
 */
-int isPowerOfTwo (int32_t x)
+int32_t isPowerOfTwo (int32_t x)
 {
   return ((x != 0) && ((x & (~x + 1)) == x));
 }

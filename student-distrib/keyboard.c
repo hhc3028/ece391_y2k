@@ -87,7 +87,7 @@ void initialize_keyboard() {
 			nbytes = size of the data to be put in
 	returns nbytes successfully read
 */
-int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
+int32_t terminal_read(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t nbytes)
 {
 	int j; //counter variable
 	while(!allow_read) //lock until ENTER
@@ -123,7 +123,7 @@ int32_t terminal_read(int32_t fd, unsigned char * buf, int32_t nbytes)
 	outputs the buf char array onto screen
 	
 */
-int32_t terminal_write(int32_t fd, unsigned char * buf, int32_t nbytes)
+int32_t terminal_write(int8_t * fname, int32_t * position, const uint8_t* buf, int32_t nbytes)
 {
 	int count; //count variable
 

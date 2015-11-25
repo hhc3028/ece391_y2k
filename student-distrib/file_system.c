@@ -3,7 +3,6 @@
 #include "file_system.h"
 #include "lib.h"
 #include "x86_desc.h"
-#include "syscall.h"
 
 uint32_t boot_block_addr;					// stores the address of the boot block
 
@@ -320,9 +319,6 @@ int32_t read_data(uint32_t inode, uint32_t position, uint8_t* buf, uint32_t leng
 		buffer_index++;
 	}
 	
-	printf("\n");
-	printf("Length Read: %d\n", length);
-	printf("Total Size of File: %u\n", file_length);
 	return length;
 }
 
@@ -408,7 +404,7 @@ void test_file_systems(const uint8_t* fname)
 
 /* File Operations */
 
-int32_t read_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
+int32_t read_file(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
 {
 	dentries_t test_dentry;
 	
@@ -435,7 +431,9 @@ int32_t read_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t leng
 		/* If the File is a regular file, call read data */
 		if(test_dentry.file_type == TYPE_REGULAR)
 		{
-			return read_data(test_dentry.inode_num, *position, buf, length);
+			int32_t retval = read_data(test_dentry.inode_num, *position, buf, length);
+			*position += retval;
+			return retval;
 		}
 		/* If the file is a directory */
 		else if(test_dentry.file_type == TYPE_DIR)
@@ -451,7 +449,7 @@ int32_t read_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t leng
 	return 0;
 }
 
-int32_t write_file(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
+int32_t write_file(int8_t * fname, int32_t * position, const uint8_t* buf, int32_t length)
 {
 	return -1;
 }
@@ -461,23 +459,15 @@ int32_t close_file()
 	return 0;
 }
 
-int32_t open_file(pcb_t * process_control_block, int32_t file_num, dentries_t file)
+int32_t open_file(inodes_t ** inode_ptr, int32_t inode_num)
 {
-	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
-	process_control_block->fd[file_num].fop_ptr.read = read_file;
-	process_control_block->fd[file_num].fop_ptr.write = write_file;
-	process_control_block->fd[file_num].fop_ptr.close = close_file;
-	process_control_block->fd[file_num].fop_ptr.open = open_file;
-	process_control_block->fd[file_num].flags = IN_USE;
-	process_control_block->fd[file_num].file_position = 0;
-	process_control_block->fd[file_num].inode_ptr = &index_node[file.inode_num];
-	process_control_block->file_type[file_num] = 2;
-	return file_num;
+	*inode_ptr = &index_node[inode_num];
+	return 0;
 }
 
 /* Directory Operations */
 
-int32_t read_dir(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
+int32_t read_dir(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
 {
 	/* Get the total # of dir. entries */
 	boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
@@ -492,14 +482,13 @@ int32_t read_dir(int8_t * fname, int32_t * position, uint8_t* buf, int32_t lengt
 	}	
 
 	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
-	printf("File Name: %s\n", dir_entries[dir_counter].file_name);
-	position++;				// increment the num of directories read
+	(*position)++;				// increment the num of directories read
 
 	uint32_t length_read = strlen((const int8_t*) buf);
 	return length_read;
 }
 
-int32_t write_dir(int8_t * fname, int32_t * position, uint8_t* buf, int32_t length)
+int32_t write_dir(int8_t * fname, int32_t * position, const uint8_t* buf, int32_t length)
 {
 	return -1;
 }
@@ -510,16 +499,8 @@ int32_t close_dir()
 }
 
 /* Directory Operations */
-int32_t open_dir(pcb_t * process_control_block, int32_t file_num, dentries_t file)
+int32_t open_dir(inodes_t ** inode_ptr, int32_t inode_num)
 {
-	strcpy((int8_t*)process_control_block->filenames[file_num], file.file_name);
-	process_control_block->fd[file_num].fop_ptr.read = read_dir;
-	process_control_block->fd[file_num].fop_ptr.write = write_dir;
-	process_control_block->fd[file_num].fop_ptr.close = close_dir;
-	process_control_block->fd[file_num].fop_ptr.open = open_dir;
-	process_control_block->fd[file_num].flags = IN_USE;
-	process_control_block->fd[file_num].file_position = 0;
-	process_control_block->fd[file_num].inode_ptr = &index_node[file.inode_num];
-	process_control_block->file_type[file_num] = 1;
-	return file_num;
+	*inode_ptr = &index_node[inode_num];
+	return 0;
 }
