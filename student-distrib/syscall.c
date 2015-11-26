@@ -47,7 +47,7 @@ int32_t execute(const uint8_t * command)
 	uint32_t i;
 	uint32_t entry_point = 0;
 	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
-	uint32_t first_space_reached;
+	uint32_t first_space_reached = 0;
 	uint32_t length_of_fname = 0;
 	uint8_t arg_buffer[BUF_MAX];
 	uint8_t bitmask = 0x80;
@@ -475,3 +475,37 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 
 	return process_control_block->fd[fd].fop_ptr.write(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
 }
+
+int32_t getargs(uint8_t* buf, int32_t nbytes)
+{
+	if(nbytes == 0)				// if nbytes is zero, then do nothing
+	{
+		return -1;				// return -1 (FAIL)
+	}
+
+	if(strlen((int8_t*)buf) == 0)		// check if a valid buffer is passed in
+	{
+		return -1;				// return -1 (FAIL)
+	}
+
+
+	// get the current process we are on
+	pcb_t * curr_process = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	if(strlen((int8_t*)curr_process->arg_buf) == 0)	// if the argument buffer is empty
+	{
+		return 0;				// return -1 (FAIL)
+	}
+
+	if(strlen((int8_t*)curr_process->arg_buf) > strlen((int8_t*)buf)) //the arg buf is larger than buf
+	{
+		return -1;
+	}
+	
+	// use lib function to copy n bytes into dest from source
+	strncpy((int8_t*)buf, (int8_t*)curr_process->arg_buf, nbytes);
+
+	return 0;					// return 0 (SUCCESS)
+}
+
+
+
