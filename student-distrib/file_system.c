@@ -196,7 +196,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 	uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
 	
 	/* check is the file name is of valid size */
-	if(1 < name_length && name_length < NAME_SIZE)
+	if(0 < name_length && name_length < NAME_SIZE)
 	{
 		/* Get the total # of dir. entries */
 		boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;
@@ -475,13 +475,13 @@ int32_t read_dir(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t
 	total_dir_entries = bootBlock->num_dentries;
 
 	/* Check if we have already read all the directories */
-	if(total_dir_entries <= dir_counter)		// if we already read all directories
+	if(total_dir_entries <= *position)		// if we already read all directories
 	{
-		dir_counter = 0;						// reset the directory read counter back to 0
+		*position = 0;						// reset the directory read counter back to 0
 		return 0;								// return success (0)
 	}	
 
-	strcpy((int8_t*) buf, (const int8_t*) dir_entries[dir_counter].file_name);
+	strcpy((int8_t*) buf, (const int8_t*) dir_entries[*position].file_name);
 	(*position)++;				// increment the num of directories read
 
 	uint32_t length_read = strlen((const int8_t*) buf);

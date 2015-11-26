@@ -21,7 +21,7 @@ void initialize_paging()
 	int i;								// variable to iterate and initialize
 	for(i = 0; i < table_size; i ++)
 	{
-		pageTable[i] = 0;
+		pageTable[i] = enable_write;
 		pageTable[i] |= (i << 12);
 		pageDirct[i] = enable_write;
 	}
@@ -39,7 +39,7 @@ void initialize_paging()
 
 void new_page_dirct(uint8_t process_number) {
 
-	pageDirct[32] |= ((process_number + 2) << 22) | enable_present | enable_4MB | enable_user;	// set the present bit for the task as well as the 4MB bit and user bit
+	pageDirct[32] = ((process_number + 2) << 22) | enable_present | enable_4MB | enable_user | enable_write;	// set the present bit for the task as well as the 4MB bit and user bit
 
 	return;
 }

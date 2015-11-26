@@ -361,23 +361,27 @@ exception_reserved_wrapper:
 
 # Assembly linkage for the system call handler
 sys_call_handler:
-	pushl	%ebp
+	pushl	%ebx
+	pushl	%ecx
+	pushl	%edx
 	pushl	%edi
 	pushl	%esi
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
+	pushl	%ebp
 	addl	$-1, %eax
 	cmpl	$9, %eax
 	ja		err
+	pushl	%edx
+	pushl	%ecx
+	pushl	%ebx
 	call	*operations(, %eax, 4)
+	addl	$12, %esp
 done:
-	popl	%ebx
-	popl	%ecx
-	popl	%edx
+	popl	%ebp
 	popl	%esi
 	popl	%edi
-	popl	%ebp
+	popl	%edx
+	popl	%ecx
+	popl	%ebx
 	iret
 err:
 	movl	$-1, %eax

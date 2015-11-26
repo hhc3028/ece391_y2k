@@ -140,12 +140,20 @@ void exception_bounds_check() {
 
 /* Handler for the undefined opcode exception. */
 void exception_undefined_op() {
+	int32_t error;
+	asm volatile (
+		"movl %%eax, %0"
+            : "=g" (error)
+            : /* no inputs */
+            : "eax"
+    );
 	/* Clear the screen. */
 	clear();	
 	//for(i = 0; i < 4000; i++)
 	//{*(uint8_t *)(video_mem + (i << 1) + 1) = 0xDF;}
 	/* Print out the error message for the exception */
 	printf("Undefined Operation Code exception occured.\n");
+	printf("%x opcode attempted\n", error);
 	while(1);
 }
 

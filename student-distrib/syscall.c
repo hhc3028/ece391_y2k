@@ -48,7 +48,7 @@ int32_t execute(const uint8_t * command)
 	uint32_t entry_point = 0;
 	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
 	uint32_t first_space_reached;
-	uint32_t length_of_fname;
+	uint32_t length_of_fname = 0;
 	uint8_t arg_buffer[BUF_MAX];
 	uint8_t bitmask = 0x80;
 	uint8_t new_process = 0;
@@ -89,6 +89,9 @@ int32_t execute(const uint8_t * command)
 		}
 	}
 	//terminate string
+	if(first_space_reached == 0) {
+		length_of_fname = i - 1;
+	}
 	arg_buffer[i - length_of_fname - 1] = '\0';
 
 	if(first_space_reached == 0)
@@ -159,6 +162,7 @@ int32_t execute(const uint8_t * command)
 		process_control_block->process_number = new_process;
 		process_control_block->parent_ebp = 0;
 		process_control_block->parent_esp = 0;
+		process_control_block->has_child = 0;
 	}
 
 	else
@@ -168,10 +172,12 @@ int32_t execute(const uint8_t * command)
 		process_control_block->parent_process_number = open_process;
 		//mark that the parent process has sub process
 		parent_process_control_block->has_child++;
-		process_control_block->parent_process_number = open_process;
 		process_control_block->process_number = new_process;
 		process_control_block->parent_ebp = parent_process_control_block->ebp;
 		process_control_block->parent_esp = parent_process_control_block->esp;
+		process_control_block->has_child = 0;
+		process_control_block->ebp = tss.ebp;
+		process_control_block->esp = tss.esp;
 		open_process = new_process;
 	}
 
@@ -191,14 +197,7 @@ int32_t execute(const uint8_t * command)
 	strcpy((int8_t*)process_control_block->arg_buf, (const int8_t*)arg_buffer);
 
 	//set kernel stack bottom and tss.esp0 to bottom of new kernel stack
-	uint32_t temp_ebp, temp_esp;
-	temp_ebp = tss.ebp;
-	temp_esp = tss.esp;
-	tss.esp0 = (_8MB - (_8KB)*(open_process) - 4);
-
-	process_control_block->ebp = temp_ebp;
-	process_control_block->esp = temp_esp;
-	temp_ebp = _8MB + _4MB - 4;
+	tss.esp0 = (_8MB - (_8KB)*(open_process));
 	//initialize stdin and stdout
 	open((uint8_t *) "stdin");
 	open((uint8_t *) "stdout");
@@ -233,17 +232,31 @@ int32_t halt(uint8_t status)
 	//get the PCB
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
+	//set the current process to 0 to mark it done so other process can take this slot
+	processes &= ~(0x80 >> open_process);
+
 	//if the user try to close the only shell being operated on then stop them
 	//we can either reset the shell (get the entry point and jump to it) or we can ignore it
 	//for now we ignore it
 	if(process_control_block->parent_process_number == -1)
 	{
+		/*//get the PCB
+		open_process = 0;
+
+		asm volatile(
+			"popl	%%ebp				;"
+			"popl	%%esi				;"
+			"popl	%%edi				;"
+			"popl	%%edx				;"
+			"popl	%%ecx				;"
+			"popl	%%ebx				;"
+			"addl	$20, %%esp			"
+				: // No Outputs
+				: // No Inputs
+				: "esp", "ebp", "esi", "edi", "edx", "ecx", "ebx");
+		execute((uint8_t*)"shell");*/
 		return -1;
-		//break;
 	}
-	
-	//set the current process to 0 to mark it done so other process can take this slot
-	processes &= ~(0x80 >> open_process);
 
 	//set parent process to has no child and update ksp and kbp
 	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
@@ -261,18 +274,16 @@ int32_t halt(uint8_t status)
 
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
-	uint32_t temp_status = status;
-
 	asm volatile(
 		"movl	%0, %%eax				;"
 		"movl	%%eax, %%esp			;"
+		"pushl	%1						;"	
 		"movl	%2, %%eax				;"
-		"movl	%%eax, %%ebp 			;"	
-		"pushl	%1						;"			
+		"movl	%%eax, %%ebp 			;"			
 		"popl	%%eax					;"
 		"jmp	halt_ret_label			"
 			: /* No Outputs */
-			: "g"(process_control_block->parent_esp),"g"(temp_status), "g"(process_control_block->parent_ebp)
+			: "g"(process_control_block->parent_esp),"g"(status), "g"(process_control_block->parent_ebp)
 			: "esp", "ebp", "eax");
 
 	return 0;
