@@ -368,8 +368,10 @@ sys_call_handler:
 	pushl	%esi
 	pushl	%ebp
 	addl	$-1, %eax
-	cmpl	$9, %eax
-	ja		err
+	cmpl	$5, %eax
+	jg		err
+	cmpl	$0, %eax
+	jl		err
 	pushl	%edx
 	pushl	%ecx
 	pushl	%ebx

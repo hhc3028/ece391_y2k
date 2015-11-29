@@ -123,6 +123,9 @@ int32_t execute(const uint8_t * command)
 			return -1;
 		}
 	}
+	if(new_process == 8) {
+		return -1;
+	}
 	processes |= bitmask;
 	/*set up page directory? */
 	new_page_dirct(new_process);
@@ -240,22 +243,22 @@ int32_t halt(uint8_t status)
 	//for now we ignore it
 	if(process_control_block->parent_process_number == -1)
 	{
-		/*//get the PCB
+		//get the PCB
 		open_process = 0;
 
 		asm volatile(
+			"addl	$12, %%esp			;"
 			"popl	%%ebp				;"
 			"popl	%%esi				;"
 			"popl	%%edi				;"
 			"popl	%%edx				;"
 			"popl	%%ecx				;"
 			"popl	%%ebx				;"
-			"addl	$20, %%esp			"
+			"addl	$24, %%esp			"
 				: // No Outputs
 				: // No Inputs
 				: "esp", "ebp", "esi", "edi", "edx", "ecx", "ebx");
-		execute((uint8_t*)"shell");*/
-		return -1;
+		execute((uint8_t*)"shell");
 	}
 
 	//set parent process to has no child and update ksp and kbp
@@ -265,12 +268,13 @@ int32_t halt(uint8_t status)
 
 
 	//load page directory of parent
-	new_page_dirct(process_control_block->parent_process_number);
+	new_page_dirct(open_process);
 	flush_tlb();
 	
 
 	//set kernel stack bottom and tss to parent's kernel stack
 	tss.esp0 = (_8MB - (_8KB)*(process_control_block->parent_process_number) - 4);
+	uint8_t temp_status = status;
 
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
@@ -283,7 +287,7 @@ int32_t halt(uint8_t status)
 		"popl	%%eax					;"
 		"jmp	halt_ret_label			"
 			: /* No Outputs */
-			: "g"(process_control_block->parent_esp),"g"(status), "g"(process_control_block->parent_ebp)
+			: "g"(process_control_block->parent_esp),"g"(temp_status), "g"(process_control_block->parent_ebp)
 			: "esp", "ebp", "eax");
 
 	return 0;
