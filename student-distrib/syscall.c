@@ -47,7 +47,7 @@ int32_t execute(const uint8_t * command)
 	uint32_t i;
 	uint32_t entry_point = 0;
 	uint8_t magic_num[4] = {0x7f, 0x45, 0x4c, 0x46};
-	uint32_t first_space_reached;
+	uint32_t first_space_reached = 0;
 	uint32_t length_of_fname = 0;
 	uint8_t arg_buffer[BUF_MAX];
 	uint8_t bitmask = 0x80;
@@ -478,4 +478,88 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 	}
 
 	return process_control_block->fd[fd].fop_ptr.write(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
+}
+
+int32_t getargs(uint8_t* buf, int32_t nbytes)
+{
+	if(nbytes == 0)				// if nbytes is zero, then do nothing
+	{
+		return -1;				// return -1 (FAIL)
+	}
+
+	if(strlen((int8_t*)buf) == 0)		// check if a valid buffer is passed in
+	{
+		return -1;				// return -1 (FAIL)
+	}
+
+
+	// get the current process we are on
+	pcb_t * curr_process = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	if(strlen((int8_t*)curr_process->arg_buf) == 0)	// if the argument buffer is empty
+	{
+		return 0;				// return -1 (FAIL)
+	}
+
+	if(strlen((int8_t*)curr_process->arg_buf) > strlen((int8_t*)buf)) //the arg buf is larger than buf
+	{
+		return -1;
+	}
+	
+	// use lib function to copy n bytes into dest from source
+	strncpy((int8_t*)buf, (int8_t*)curr_process->arg_buf, nbytes);
+
+	return 0;					// return 0 (SUCCESS)
+}
+
+
+
+
+int32_t vidmap(uint8_t** screen_start)
+{
+	uint32_t lower_bound = 128 << 20;				// the lower bound for the screen
+	uint32_t upper_bound = (132 << 20) - 4;			// the upper bound for the screen
+	uint32_t terminal;
+	// if the start of the screen is within the lower bound
+	if((uint32_t) screen_start >= lower_bound)
+	{
+	// if the start of the screen is within the upper bound, too
+		if((uint32_t) screen_start < upper_bound)
+		{
+
+			/*
+			// Mapping the 4kB page into video memory
+			uint32_t page_table_addr;
+			uint32_t page_dir_index;
+			uint32_t page_table_index;
+
+			page_dir_index = (256 << 20) / (4 << 20);			// get page directory index
+			page_table_index = (256 << 20) % (4 << 20);
+			page_table_index = page_table_index / (4 << 10);	// get page table index
+
+			page_table_addr = (uint32_t)
+			*/
+
+			pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process) & _8KB);
+			terminal = process_control_block->terminal_num;
+
+			new_page_dirct(open_process);
+			flush_tlb();
+
+			if(terminal == 0)
+				*screen_start = (uint8_t *) VIDEO_1;
+			else if (terminal == 1)
+				*screen_start = (uint8_t *) VIDEO_2;
+			else if (terminal == 2)
+				*screen_start = (uint8_t *) VIDEO_3;
+			else
+				return -1;
+
+
+
+
+		}
+	}
+
+	// is screen_start is not within range, return fail
+	return -1;
 }
