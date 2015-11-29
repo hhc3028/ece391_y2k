@@ -509,3 +509,53 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 
 
 
+
+int32_t vidmap(uint8_t** screen_start)
+{
+	uint32_t lower_bound = 128 << 20;				// the lower bound for the screen
+	uint32_t upper_bound = (132 << 20) - 4;			// the upper bound for the screen
+	uint32_t terminal;
+	// if the start of the screen is within the lower bound
+	if((uint32_t) screen_start >= lower_bound)
+	{
+	// if the start of the screen is within the upper bound, too
+		if((uint32_t) screen_start < upper_bound)
+		{
+
+			/*
+			// Mapping the 4kB page into video memory
+			uint32_t page_table_addr;
+			uint32_t page_dir_index;
+			uint32_t page_table_index;
+
+			page_dir_index = (256 << 20) / (4 << 20);			// get page directory index
+			page_table_index = (256 << 20) % (4 << 20);
+			page_table_index = page_table_index / (4 << 10);	// get page table index
+
+			page_table_addr = (uint32_t)
+			*/
+
+			pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process) & _8KB);
+			terminal = process_control_block->terminal_num;
+
+			new_page_dirct(open_process);
+			flush_tlb();
+
+			if(terminal == 0)
+				*screen_start = (uint8_t *) VIDEO_1;
+			else if (terminal == 1)
+				*screen_start = (uint8_t *) VIDEO_2;
+			else if (terminal == 2)
+				*screen_start = (uint8_t *) VIDEO_3;
+			else
+				return -1;
+
+
+
+
+		}
+	}
+
+	// is screen_start is not within range, return fail
+	return -1;
+}
