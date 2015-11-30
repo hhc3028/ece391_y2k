@@ -21,7 +21,7 @@ void initialize_paging(void);
 // function initializes a page directory for a new task
 void change_task(uint8_t process_number);
 // function to find a free page directory
-uint32_t new_page_dirct(void);
+int32_t map_page(uint32_t virtual, uint32_t physical);
 
 // assembly function to enable paging
 void enable_paging(void);

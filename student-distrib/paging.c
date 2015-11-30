@@ -44,21 +44,34 @@ void change_task(uint8_t process_number) {
 	return;
 }
 
-uint32_t new_page_dirct() {
-	int32_t i = 2;
-	while(pageDirct[i] & enable_present) {
-		if(i < table_size && i >= 0) {
-			i++;
-		}
-		else {
-			return 0;
-		}
+/* Function tries to map a page directory entry that contains a desired physical address.
+ * If the desired physical address is 0, the function will look for the first free
+ * large page and map it to the normal default position, right now default is just large page */
+int32_t map_page(uint32_t virtual, uint32_t physical) {
+	uint32_t PDE = virtual >> 22;
+	uint32_t PTE = (virtual & 0x003FF000) >> 12;
+	/* Invalid access memory */
+	if(virtual < 0x800000) {
+		return -1;
 	}
-	if(i < table_size && i >= 0) {
-		i++;
+	/* If page table already exists */
+	if((pageDirct[PDE] & enable_present) && !(pageDirct[PDE] & enable_4MB)) {
+		uint32_t * pagetab = (uint32_t *)(pageDirct[PDE] & 0xFFFFF000);
+		pagetab[PTE] = (physical & 0xFFFFF000) | enable_present | enable_write | enable_user;
+		return 0;
 	}
-	pageDirct[i] = (i << 22) | enable_present | enable_user | enable_write | enable_4MB;
-	return (uint32_t)&pageDirct[i];
+	/* If page table does not already exit */
+	else {
+		static uint32_t pageTable1[table_size] __attribute__((aligned (page_size)));
+		pageDirct[PDE] = (((unsigned int) pageTable1) & 0xFFFFF000) | enable_present | enable_write | enable_user;
+		uint32_t i;
+		for(i = 0; i < table_size; i ++)
+		{
+			pageTable1[i] = 0;
+		}
+		pageTable1[PTE] = (physical & 0xFFFFF000) | enable_present | enable_write | enable_user;
+		return 0;
+	}
 }
 
 void enable_paging()
