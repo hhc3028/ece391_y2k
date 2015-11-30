@@ -544,6 +544,7 @@ int32_t vidmap(uint8_t** screen_start)
 			pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process) & _8KB);
 			terminal = process_control_block->terminal_num;
 
+		
 			change_task(open_process);
 			flush_tlb();
 
@@ -556,7 +557,7 @@ int32_t vidmap(uint8_t** screen_start)
 			else
 				return -1;
 
-
+			//map_pte(*screen_start);
 
 
 		}
