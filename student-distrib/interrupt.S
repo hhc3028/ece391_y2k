@@ -368,7 +368,7 @@ sys_call_handler:
 	pushl	%esi
 	pushl	%ebp
 	addl	$-1, %eax
-	cmpl	$5, %eax
+	cmpl	$7, %eax
 	jg		err
 	cmpl	$0, %eax
 	jl		err
@@ -389,7 +389,7 @@ err:
 	movl	$-1, %eax
 	jmp		done
 operations:
-	.long	halt, execute, read, write, open, close #, getargs, vidmap, set_hanlder, sigreturn
+	.long	halt, execute, read, write, open, close, getargs, vidmap #, set_hanlder, sigreturn
 
 #
 #	return_to_user

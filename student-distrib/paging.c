@@ -37,11 +37,28 @@ void initialize_paging()
 	enable_paging();
 }
 
-void new_page_dirct(uint8_t process_number) {
+void change_task(uint8_t process_number) {
 
 	pageDirct[32] = ((process_number + 2) << 22) | enable_present | enable_4MB | enable_user | enable_write;	// set the present bit for the task as well as the 4MB bit and user bit
 
 	return;
+}
+
+uint32_t new_page_dirct() {
+	int32_t i = 2;
+	while(pageDirct[i] & enable_present) {
+		if(i < table_size && i >= 0) {
+			i++;
+		}
+		else {
+			return 0;
+		}
+	}
+	if(i < table_size && i >= 0) {
+		i++;
+	}
+	pageDirct[i] = (i << 22) | enable_present | enable_user | enable_write | enable_4MB;
+	return (uint32_t)&pageDirct[i];
 }
 
 void enable_paging()

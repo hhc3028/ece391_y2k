@@ -128,7 +128,7 @@ int32_t execute(const uint8_t * command)
 	}
 	processes |= bitmask;
 	/*set up page directory? */
-	new_page_dirct(new_process);
+	change_task(new_process);
 	flush_tlb();
 
 	//instruction start at byte 24-27
@@ -268,7 +268,7 @@ int32_t halt(uint8_t status)
 
 
 	//load page directory of parent
-	new_page_dirct(open_process);
+	change_task(open_process);
 	flush_tlb();
 	
 
@@ -315,6 +315,9 @@ int32_t open(const uint8_t* filename){
 			return -1;
 		}
 		i++;
+	}
+	if(i >= 8) {
+		return -1;
 	}
 
 	if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
@@ -418,7 +421,6 @@ int32_t close(int32_t fd) {
 	if(process_control_block->fd[fd].fop_ptr.close == NULL) {
 		return -1;
 	}
-	strcpy((int8_t*)process_control_block->filenames[fd], NULL);
 	process_control_block->fd[fd].fop_ptr.read = NULL;
 	process_control_block->fd[fd].fop_ptr.write = NULL;
 	process_control_block->fd[fd].fop_ptr.close = NULL;
@@ -487,7 +489,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 		return -1;				// return -1 (FAIL)
 	}
 
-	if(strlen((int8_t*)buf) == 0)		// check if a valid buffer is passed in
+	if(buf == NULL)		// check if a valid buffer is passed in
 	{
 		return -1;				// return -1 (FAIL)
 	}
@@ -500,7 +502,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 		return 0;				// return -1 (FAIL)
 	}
 
-	if(strlen((int8_t*)curr_process->arg_buf) > strlen((int8_t*)buf)) //the arg buf is larger than buf
+	if(strlen((int8_t*)curr_process->arg_buf) > nbytes) //the arg buf is larger than buf
 	{
 		return -1;
 	}
@@ -542,7 +544,7 @@ int32_t vidmap(uint8_t** screen_start)
 			pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process) & _8KB);
 			terminal = process_control_block->terminal_num;
 
-			new_page_dirct(open_process);
+			change_task(open_process);
 			flush_tlb();
 
 			if(terminal == 0)

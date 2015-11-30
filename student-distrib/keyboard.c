@@ -101,9 +101,9 @@ int32_t terminal_read(const int8_t * fname, int32_t * position, uint8_t* buf, in
 		screen_y++;
 		screen_x = 0;
 	}	
-	for(j = 0; j < BUF_MAX; j++)
+	for(j = 0; j <= nbytes; j++)
 		buf[j] = '\0';
-	for(j = 0; j < nbytes; j++) //set terminal buffer from keyboard buffer
+	for(j = 0; j <= nbytes; j++) //set terminal buffer from keyboard buffer
 	{
 		buf[j] = buffer[j];
 		buffer[j] = '\0';
