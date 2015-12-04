@@ -10,7 +10,11 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define VIDEO 0xB8000
+#define VIDEO_1 0x01000
+#define VIDEO_2 0x03000
+#define VIDEO_3 0x05000
 #define ATTRIB 0x7
+#define vir_vid 0x21000000
 
 int screen_x;
 int screen_y;

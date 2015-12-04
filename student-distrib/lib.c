@@ -183,6 +183,9 @@ puts(int8_t* s)
 void
 putc(uint8_t c)
 {
+	while(screen_y >= (NUM_ROWS - 2))
+		handle_max_buffer();
+	
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x=0;
