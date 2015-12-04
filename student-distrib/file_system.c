@@ -196,7 +196,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentries_t* dentry)
 	uint32_t name_length = strlen((int8_t*)fname);			// store the length of the file name
 	
 	/* check is the file name is of valid size */
-	if(0 < name_length && name_length < NAME_SIZE)
+	if(0 < name_length && name_length <= NAME_SIZE)
 	{
 		/* Get the total # of dir. entries */
 		boot_block_t* bootBlock = (boot_block_t *) boot_block_addr;

@@ -192,6 +192,7 @@ typedef struct pcb_t {
 	uint32_t has_child;
 	uint32_t ebp;
 	uint32_t esp;
+	uint32_t terminal_num;
 } pcb_t;
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */

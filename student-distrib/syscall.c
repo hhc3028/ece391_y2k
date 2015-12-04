@@ -123,9 +123,12 @@ int32_t execute(const uint8_t * command)
 			return -1;
 		}
 	}
+	if(new_process == 8) {
+		return -1;
+	}
 	processes |= bitmask;
 	/*set up page directory? */
-	new_page_dirct(new_process);
+	change_task(new_process);
 	flush_tlb();
 
 	//instruction start at byte 24-27
@@ -240,22 +243,22 @@ int32_t halt(uint8_t status)
 	//for now we ignore it
 	if(process_control_block->parent_process_number == -1)
 	{
-		/*//get the PCB
+		//get the PCB
 		open_process = 0;
 
 		asm volatile(
+			"addl	$12, %%esp			;"
 			"popl	%%ebp				;"
 			"popl	%%esi				;"
 			"popl	%%edi				;"
 			"popl	%%edx				;"
 			"popl	%%ecx				;"
 			"popl	%%ebx				;"
-			"addl	$20, %%esp			"
+			"addl	$24, %%esp			"
 				: // No Outputs
 				: // No Inputs
 				: "esp", "ebp", "esi", "edi", "edx", "ecx", "ebx");
-		execute((uint8_t*)"shell");*/
-		return -1;
+		execute((uint8_t*)"shell");
 	}
 
 	//set parent process to has no child and update ksp and kbp
@@ -265,12 +268,13 @@ int32_t halt(uint8_t status)
 
 
 	//load page directory of parent
-	new_page_dirct(process_control_block->parent_process_number);
+	change_task(open_process);
 	flush_tlb();
 	
 
 	//set kernel stack bottom and tss to parent's kernel stack
 	tss.esp0 = (_8MB - (_8KB)*(process_control_block->parent_process_number) - 4);
+	uint8_t temp_status = status;
 
 	//status will be lost when we switch stack so push it onto parent stack
 	//set ebp and esp to parent's stack
@@ -283,7 +287,7 @@ int32_t halt(uint8_t status)
 		"popl	%%eax					;"
 		"jmp	halt_ret_label			"
 			: /* No Outputs */
-			: "g"(process_control_block->parent_esp),"g"(status), "g"(process_control_block->parent_ebp)
+			: "g"(process_control_block->parent_esp),"g"(temp_status), "g"(process_control_block->parent_ebp)
 			: "esp", "ebp", "eax");
 
 	return 0;
@@ -311,6 +315,9 @@ int32_t open(const uint8_t* filename){
 			return -1;
 		}
 		i++;
+	}
+	if(i >= 8) {
+		return -1;
 	}
 
 	if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
@@ -414,7 +421,6 @@ int32_t close(int32_t fd) {
 	if(process_control_block->fd[fd].fop_ptr.close == NULL) {
 		return -1;
 	}
-	strcpy((int8_t*)process_control_block->filenames[fd], NULL);
 	process_control_block->fd[fd].fop_ptr.read = NULL;
 	process_control_block->fd[fd].fop_ptr.write = NULL;
 	process_control_block->fd[fd].fop_ptr.close = NULL;
@@ -483,7 +489,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 		return -1;				// return -1 (FAIL)
 	}
 
-	if(strlen((int8_t*)buf) == 0)		// check if a valid buffer is passed in
+	if(buf == NULL)		// check if a valid buffer is passed in
 	{
 		return -1;				// return -1 (FAIL)
 	}
@@ -496,7 +502,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 		return 0;				// return -1 (FAIL)
 	}
 
-	if(strlen((int8_t*)curr_process->arg_buf) > strlen((int8_t*)buf)) //the arg buf is larger than buf
+	if(strlen((int8_t*)curr_process->arg_buf) > nbytes) //the arg buf is larger than buf
 	{
 		return -1;
 	}
@@ -509,3 +515,14 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 
 
 
+
+int32_t vidmap(uint8_t** screen_start)
+{
+	if((uint32_t)screen_start <= 0x00800000) {
+		return -1;
+	}
+	map_page(0x21000000, 0xB8000);
+	flush_tlb();
+	*screen_start = (uint8_t *)0x21000000;
+	return 0x21000000;
+}
