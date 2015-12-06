@@ -1,14 +1,12 @@
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
+#include "paging.h"
 
 #define RIGHT_SHFT 0x36
 #define LEFT_SHFT 0x2A
-#define F2 0x3C
 #define CAPS 0x3A
 #define CTRL 0x1D
-#define ALT 0x38
-#define ALT_REL 0xB8
 #define CTRL_REL 0x9D
 #define R_SHFT_REL 0xB6
 #define L_SHFT_REL 0xAA
@@ -17,19 +15,26 @@
 #define L_KEY 0x26
 #define MAX_CHAR 90
 #define MAX_SCAN 0x58
-#define MAX_TERM 8
-#define SPECIAL_KEY 0xE0
+
+// Checkpoint 5
+#define NUM_TERMINAL	3				// the number of terminals
+#define BUF_MAX 		1024			// taken from keyboard.h
+#define VIDEO_1 		0x01000
+#define VIDEO_2 		0x03000
+#define VIDEO_3 		0x05000
+#define _4KB       	0x00001000
+
+uint32_t video_memory[3] = {VIDEO_1, VIDEO_2, VIDEO_3};
+terminal_struct_t* sys_terminals;		// about the system's terminal
+terminal_struct_t* curr_terminal;		// about the current terminal we are on
 
 static int c_flag = 0;
 static int flag = 0;
 static int ctrl_flag = 0;
-static int alt_flag = 0;
-static unsigned char buffer[MAX_TERM][BUF_MAX];
+static unsigned char buffer[BUF_MAX];
 static int curr_xcoord = 0;
 static int curr_ycoord = 0;
 static int allow_read = 0;
-static int max_terminal = 0;
-static int curr_terminal = 0;
 char * vid_mem = (char*)VIDEO;
 
 /* Array for the characters without shift or CAPS */
@@ -84,11 +89,9 @@ void initialize_keyboard() {
 	flag = 0;
 	c_flag = 0;
 	ctrl_flag = 0;
-	max_terminal = 0;
-	curr_terminal = 0;
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
-		{buffer[0][a] = NULL;
+		{buffer[a] = '\0';
 		}
 }
 /*
@@ -102,8 +105,7 @@ int32_t terminal_read(const int8_t * fname, int32_t * position, uint8_t* buf, in
 	int j; //counter variable
 	while(!allow_read) //lock until ENTER
 	{}
-	putc('\n');
-	/*if(screen_y >= (NUM_ROWS - 2)) //check for overflow
+	if(screen_y >= (NUM_ROWS - 2)) //check for overflow
 	{
 		handle_max_buffer();
 	}
@@ -111,16 +113,18 @@ int32_t terminal_read(const int8_t * fname, int32_t * position, uint8_t* buf, in
 	{
 		screen_y++;
 		screen_x = 0;
-	}	*/
-	for(j = 0; j < BUF_MAX; j++)
-		buf[j] = NULL;
-	for(j = 0; j < nbytes; j++) //set terminal buffer from keyboard buffer
+	}	
+	for(j = 0; j <= nbytes; j++)
+		buf[j] = '\0';
+	for(j = 0; j <= nbytes; j++) //set terminal buffer from keyboard buffer
 	{
-		buf[j] = buffer[curr_terminal][j];
-		buffer[curr_terminal][j] = NULL;
+		buf[j] = buffer[j];
 	}
 	j = i;
 	i = 0; //reset buffer and cursor values
+	for(i = 0; i < BUF_MAX; i++)
+		buffer[i] = '\0';
+	i = 0;
 	allow_read = 0;
 	//screen_x = 0;
 	return j; //return nbytes success
@@ -140,7 +144,7 @@ int32_t terminal_write(int8_t * fname, int32_t * position, const uint8_t* buf, i
 
 	for(count = 0; count < nbytes; count++)
 	{ //check for overflows and fix it
-	/*	if ((screen_y < (NUM_ROWS - 2)) && (screen_x >= (NUM_COLS - 1)))
+		if ((screen_y < (NUM_ROWS - 2)) && (screen_x >= (NUM_COLS - 1)))
 		{
 			screen_x = 0;
 			screen_y++;
@@ -148,14 +152,14 @@ int32_t terminal_write(int8_t * fname, int32_t * position, const uint8_t* buf, i
 		else if(screen_x >= (NUM_COLS - 1) && (screen_y >= (NUM_ROWS -2)))
 		{
 			handle_max_buffer();
-		} */
-
+		}
 		putc(buf[count]); //print buffer
 		//update_cursor(screen_y, screen_x);
 	}
-	//if(screen_y >= (NUM_ROWS - 2)) //check for overflow after finished printing
-//		handle_max_buffer();
-	
+	if(screen_y > (NUM_ROWS - 2)) //check for overflow after finished printing
+	{
+		handle_max_buffer();
+	}
 
 	//update_cursor(screen_y, screen_x);
 	return count; //return successful nbytes
@@ -196,13 +200,13 @@ void keyboard_getchar()
 	{
 		curr_ycoord = screen_y; //set initial starting point for buffer
 		curr_xcoord = screen_x;
-	//	if(curr_ycoord > (NUM_ROWS - 2)) //handle if its too low
-	//		handle_max_buffer();
+		if(curr_ycoord > (NUM_ROWS - 2)) //handle if its too low
+			handle_max_buffer();
 	}
 	unsigned char s_code = getScancode();
 	switch (s_code)
 	{
-		
+		/*
 	case(RIGHT_SHFT):
 		if(flag == 2)
 			flag = 3;
@@ -210,7 +214,7 @@ void keyboard_getchar()
 			flag = 1;
 		s_code = 0x01;
 		break;
-		
+		*/
 	case(LEFT_SHFT): //set flag
 		if(flag == 2)
 			flag = 3;
@@ -218,26 +222,19 @@ void keyboard_getchar()
 			flag = 1;
 		s_code = 0x01;
 		break;	
-			
+		/*	
 	case(R_SHFT_REL):
-		putc('s');
 		if(flag == 3)
 			flag = 2;
 		else 
 			flag = 0;
 		break;
-		
+		*/
 	case(L_SHFT_REL): //set flag
 		if(flag == 3)
 			flag = 2;
 		else 
 			flag = 0;
-		break;
-	case(ALT):
-		alt_flag = 1;
-		break;
-	case(ALT_REL):
-		alt_flag = 0;
 		break;
 	case(CAPS): //set flag
 		if(c_flag == 0)
@@ -267,7 +264,7 @@ void keyboard_getchar()
 		if(ctrl_flag == 1)
 		{
 			for(j = 0; j < i; j++)
-				buffer[curr_terminal][j] = NULL;
+				buffer[j] = NULL;
 			s_code = 0x01; //clear the L scan value so it won't print
 			clear();
 			screen_x = 0;
@@ -277,7 +274,7 @@ void keyboard_getchar()
 		else if(i < BUF_MAX)
 		{
 			out = scancode[flag][s_code]; //special case for L since it does not register normally
-			buffer[curr_terminal][i] = out;
+			buffer[i] = out;
 			i++;
 		}
 		update_cursor(screen_y, screen_x);
@@ -292,14 +289,14 @@ void keyboard_getchar()
 				putc(' ');
 				screen_x--;
 			}
-			else if(screen_x == 0) //do delete for overflows
+			else if((screen_x == 0) && (i > 0)) //do delete for overflows
 			{
 				screen_x = NUM_COLS - 2;
 				screen_y--;
 				putc(' ');
 				screen_x = NUM_COLS - 2;
 			}
-			buffer[curr_terminal][i-1] = NULL;
+			buffer[i-1] = '\0';
 			i--;
 		update_cursor(screen_y, screen_x);		
 		}
@@ -307,49 +304,41 @@ void keyboard_getchar()
 	case(ENTER):
 		//do the enter implementation here
 		//it will need to output bufferfer and clear it after
-		buffer[curr_terminal][i] = '\n';
-		i++;
-		allow_read = 1;
-		break;
-	case(SPECIAL_KEY):
-		s_code = getScancode();
-		switch(s_code)
-		{
-			case(CTRL):
-				ctrl_flag = 1;
-				break;
-			case(CTRL_REL):
-				ctrl_flag = 0;
-				break;
-			default:
-				break;
+		if(i > -1)
+		{	
+			buffer[i] = '\n';
+			i++;
 		}
+		if(i > 0)
+			allow_read = 1;
+		break;
 	default:
 	if(ctrl_flag == 0)
 	{
 		out = scancode[flag][s_code]; //fetch char from scancode
 		if((out != 0) && (i < BUF_MAX))	//if valid char, print it
 		{
-			buffer[curr_terminal][i] = out;
+			buffer[i] = out;
 			i++;
 		}
 		screen_x = curr_xcoord;
 		screen_y = curr_ycoord; //keep track of start of buffer
 		for(j = 0; j < i; j++)
 		{
-		/*	if(screen_x >= (NUM_COLS - 1))
+			if(screen_x >= (NUM_COLS - 1))
 			{
-				if(screen_y < (NUM_ROWS - 1))	 //handle cases for scrolling and overflow
+				if(screen_y < (NUM_ROWS - 2))	 //handle cases for scrolling and overflow
 				{
 					screen_y++;
 					screen_x = 0;
 				}
-				else if (screen_y >= (NUM_ROWS - 1))
+				else if (screen_y >= (NUM_ROWS - 2))
 				{
 					handle_max_buffer();
+					curr_ycoord--;
 				}
-			} */
-			putc(buffer[curr_terminal][j]);
+			}
+			putc(buffer[j]);
 			//update_cursor(screen_y, screen_x);
 		}
 	}
@@ -371,12 +360,6 @@ void keyboard_int_handler()
 
 int32_t terminal_close()
 {
-	if(max_terminal > 0) //decrement max terminal
-	{
-		if(curr_terminal == max_terminal)
-			curr_terminal--; //if curr terminal is on the max, decrement it
-		max_terminal--;
-	}
 	return 0; //nothing apparently for this checkpoint
 }
 
@@ -389,7 +372,7 @@ int32_t terminal_close()
 void handle_max_buffer()
 {
 	int j;
-for(j = 0; j < 1; j++)
+for(j = 0; j < 2; j++)
 {
 	for(screen_y = 0; screen_y < NUM_ROWS; screen_y++) //nested loop to get all positions
 	{
@@ -412,9 +395,9 @@ for(j = 0; j < 1; j++)
 	screen_y = NUM_ROWS - 3;
 	screen_x = 0;
 	if(i != 0)
-		curr_ycoord --;
+		curr_ycoord--;
 	
-//	update_cursor(screen_y, screen_x);
+	update_cursor(screen_y, screen_x);
 }
 /*
 	DESCRIPTION This keeps in track of cursor
@@ -439,14 +422,78 @@ int32_t terminal_open()
 	flag = 0;
 	c_flag = 0;
 	ctrl_flag = 0;
-	if (max_terminal < 8)
-	{
-		curr_terminal++;
-		max_terminal++;
-	}
 	int a;
 	for (a = 0; a < BUF_MAX; a++)
-		{buffer[curr_terminal][a] = NULL;
+		{buffer[a] = '\0';
 		}
 	return 0;
+}
+
+// initialize the systems terminal structure
+uint32_t init_terminals(void)
+{
+	int x;
+	int y;
+	// initialize the sys terminal struct for 3 terminals (CHECKPOINT 5)
+	for(x = 0; x < NUM_TERMINAL; x ++)
+	{
+		sys_terminals[x].terminal_id = x;
+		sys_terminals[x].read_flag = 0;
+		sys_terminals[x].x_coordinate = 0;
+		sys_terminals[x].y_coordinate = 0;
+
+		for(y = 0; y < BUF_MAX; y ++)
+		{
+			sys_terminals[x].keyboard_buf[y] = 0;
+		}
+
+		sys_terminals[x].video_page = vir_vid + (_4KB * x);
+		sys_terminals[x].storage_page = video_memory[x];
+	}
+	return 0;
+}
+
+// Start a new terminal and return the pointer to that terminal
+terminal_struct_t *new_terminal(void)
+{
+	int x;
+	// iterate through checking for open terminal
+	for(x = 0; x < NUM_TERMINAL; x ++)
+	{
+		// check if there is no processes running for the given index
+		if(sys_terminals[x].in_use == 0)
+		{
+			// if no process is running, then return address to terminal
+			sys_terminals[x].in_use = 1;
+
+			return &sys_terminals[x];
+		}
+	}
+	// return -1 (FAIL)
+	return NULL;
+}
+
+// switch to the terminal passed and switch the current process out of video memory
+// and the new one into video memory
+void switch_termianl(terminal_struct_t* terminal)
+{
+	uint32_t flags;				// local variable to save flags
+	cli_and_save(flags);		// disable interrupts and save EFLAGS
+
+	if(terminal ==  NULL)		// if the terminal passed is NULL
+	{
+		return;					// just return
+	}
+
+	if(map_page(curr_terminal->video_page, curr_terminal->storage_page) == -1)
+	{
+		return;
+	}
+	memcpy((void *)curr_terminal->video_page, (void *)vir_vid, _4KB);
+
+	curr_terminal = terminal;	// the current terminal points to new terminal
+	memcpy((void *) vir_vid, (void *) curr_terminal->video_page, _4KB);
+	map_page(curr_terminal->video_page, VIDEO);
+
+	restore_flags(flags);	// restore flags and reable interrupts
 }
