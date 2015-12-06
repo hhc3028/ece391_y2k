@@ -16,6 +16,7 @@
 //unsigned char buf[BUF_MAX];
 int i;
 
+
 // Terminal Structure to store terminal information
 typedef struct terminal_struct {
 
@@ -45,6 +46,7 @@ void handle_max_buffer();
 void update_cursor(int row, int col);
 int32_t terminal_open();
 int32_t terminal_close();
+
 
 // Checkpoint 5 Functions
 uint32_t init_terminals(void);					// initialize the terminal struct
