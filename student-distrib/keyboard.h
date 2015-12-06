@@ -16,6 +16,24 @@
 //unsigned char buf[BUF_MAX];
 int i;
 
+// Terminal Structure to store terminal information
+typedef struct terminal_struct {
+
+	uint32_t terminal_id;				// the ID number for the terminal
+	uint32_t read_flag;					// indicate whether there arer data to read
+
+	uint8_t	 in_use;					// indicate 0 (no in use) or 1 (currently in use)
+
+	int8_t keyboard_buf[BUF_MAX];		// the keyboard buffer
+
+	uint8_t x_coordinate;
+	uint8_t y_coordinate;
+
+	uint32_t video_page;				// address to the video map
+	uint32_t storage_page;				
+
+} terminal_struct_t;
+
 void initialize_keyboard(void);
 void keyboard_getchar(void);
 unsigned char getchar(void);
@@ -27,5 +45,10 @@ void handle_max_buffer();
 void update_cursor(int row, int col);
 int32_t terminal_open();
 int32_t terminal_close();
+
+// Checkpoint 5 Functions
+uint32_t init_terminals(void);					// initialize the terminal struct
+terminal_struct_t *new_terminal(void);			// start a new terminal
+void switch_termianl(terminal_struct_t* terminal);	// swtich to another terminal
 
 #endif /* _KEYBOARD_H*/
