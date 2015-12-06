@@ -51,6 +51,6 @@ int32_t terminal_close();
 // Checkpoint 5 Functions
 uint32_t init_terminals(void);					// initialize the terminal struct
 terminal_struct_t *new_terminal(void);			// start a new terminal
-void switch_termianl(terminal_struct_t* terminal);	// swtich to another terminal
+void switch_terminal(terminal_struct_t* terminal);	// swtich to another terminal
 
 #endif /* _KEYBOARD_H*/
