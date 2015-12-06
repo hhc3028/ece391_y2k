@@ -255,13 +255,16 @@ void keyboard_getchar()
 		alt_flag = 0;
 		break;
 	case(F1):
-		switch_terminal(sys_terminals[0]);
+		if(alt_flag == 1)
+			switch_terminal(&sys_terminals[0]);
 		break;
 	case(F2):
-		switch_terminal(sys_terminals[1]);
+		if(alt_flag == 1)	
+			switch_terminal(&sys_terminals[1]);
 		break;
 	case(F3):
-		switch_terminal(sys_terminals[2]);
+		if(alt_flag == 1)
+			switch_terminal(&sys_terminals[2]);
 		break;
 	case(CAPS): //set flag
 		if(c_flag == 0)
@@ -535,6 +538,7 @@ void switch_terminal(terminal_struct_t* terminal)
 	{
 		return;
 	}
+	flush_tlb();
 	memcpy((void *)cur_terminal->video_page, (void *)vir_vid, _4KB);
 
 	cur_terminal = terminal;	// the current terminal points to new terminal
