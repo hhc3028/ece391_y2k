@@ -33,7 +33,7 @@
 
 uint32_t video_memory[3] = {VIDEO_1, VIDEO_2, VIDEO_3};
 terminal_struct_t* sys_terminals;		// about the system's terminal
-terminal_struct_t* curr_terminal;		// about the current terminal we are on
+terminal_struct_t* cur_terminal;		// about the current terminal we are on
 
 static int c_flag = 0;
 static int flag = 0;
@@ -259,7 +259,7 @@ void keyboard_getchar()
 		break;
 	case(F2):
 		switch_terminal(sys_terminals[1]);
-		break:
+		break;
 	case(F3):
 		switch_terminal(sys_terminals[2]);
 		break;
@@ -531,15 +531,15 @@ void switch_terminal(terminal_struct_t* terminal)
 		return;					// just return
 	}
 
-	if(map_page(curr_terminal->video_page, curr_terminal->storage_page) == -1)
+	if(map_page(cur_terminal->video_page, cur_terminal->storage_page) == -1)
 	{
 		return;
 	}
-	memcpy((void *)curr_terminal->video_page, (void *)vir_vid, _4KB);
+	memcpy((void *)cur_terminal->video_page, (void *)vir_vid, _4KB);
 
-	curr_terminal = terminal;	// the current terminal points to new terminal
-	memcpy((void *) vir_vid, (void *) curr_terminal->video_page, _4KB);
-	map_page(curr_terminal->video_page, VIDEO);
+	cur_terminal = terminal;	// the current terminal points to new terminal
+	memcpy((void *) vir_vid, (void *) cur_terminal->video_page, _4KB);
+	map_page(cur_terminal->video_page, VIDEO);
 
 	restore_flags(flags);	// restore flags and reable interrupts
 } 
