@@ -12,6 +12,8 @@
 #include "keyboard.h"
 #include "file_system.h"
 #include "syscall.h"
+#include "pit.h"
+
 
 /* ADDED */
 /* Include to deal with idt initialization */
@@ -178,6 +180,8 @@ entry (unsigned long magic, unsigned long addr)
 	func_init();
 	/* TESTING FILE SYSTEMS */
 	init_file_systems(starting_address);
+
+	init_terminals();
 	//printf("Init File Systems Done\n");
 	//test_file_systems((uint8_t*)"frame0.txt");
 	//printf("Done testing\n");
