@@ -5,7 +5,9 @@
 
 #define RIGHT_SHFT 0x36
 #define LEFT_SHFT 0x2A
+#define F1 0x3B
 #define F2 0x3C
+#define F3 0x3D
 #define CAPS 0x3A
 #define CTRL 0x1D
 #define ALT 0x38
@@ -125,7 +127,7 @@ int32_t terminal_read(const int8_t * fname, int32_t * position, uint8_t* buf, in
 		screen_y++;
 		screen_x = 0;
 	}	*/
-	for(j = 0; j < BUF_MAX; j++)
+	for(j = 0; j < nbytes; j++)
 		buf[j] = NULL;
 	for(j = 0; j < nbytes; j++) //set terminal buffer from keyboard buffer
 	{
@@ -251,6 +253,15 @@ void keyboard_getchar()
 		break;
 	case(ALT_REL):
 		alt_flag = 0;
+		break;
+	case(F1):
+		switch_terminal(sys_terminals[0]);
+		break;
+	case(F2):
+		switch_terminal(sys_terminals[1]);
+		break:
+	case(F3):
+		switch_terminal(sys_terminals[2]);
 		break;
 	case(CAPS): //set flag
 		if(c_flag == 0)
@@ -510,7 +521,7 @@ terminal_struct_t *new_terminal(void)
 
 // switch to the terminal passed and switch the current process out of video memory
 // and the new one into video memory
-void switch_termianl(terminal_struct_t* terminal)
+void switch_terminal(terminal_struct_t* terminal)
 {
 	uint32_t flags;				// local variable to save flags
 	cli_and_save(flags);		// disable interrupts and save EFLAGS
