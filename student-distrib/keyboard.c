@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
+#include "paging.h"
 
 #define RIGHT_SHFT 0x36
 #define LEFT_SHFT 0x2A
@@ -27,6 +28,10 @@
 #define VIDEO_2 		0x03000
 #define VIDEO_3 		0x05000
 #define _4KB       	0x00001000
+
+uint32_t video_memory[3] = {VIDEO_1, VIDEO_2, VIDEO_3};
+terminal_struct_t* sys_terminals;		// about the system's terminal
+terminal_struct_t* curr_terminal;		// about the current terminal we are on
 
 static int c_flag = 0;
 static int flag = 0;
