@@ -12,6 +12,9 @@ extern void rtc_int_handler();
 /* The actual handler for the rtc is defined externally */
 extern void isr_handler();
 
+/* The actual handler for the pit is defined externally */
+//extern void pit_interrupt();
+
 /* The handlers for all of the exceptions */
 extern void exception_divide();
 extern void exception_step();

@@ -170,7 +170,7 @@ int32_t rtc_write(int8_t * fname, int32_t * position, const uint8_t* set_freq, i
  * Retvals: 0
  */
 
-int32_t rtc_open()
+int32_t rtc_open(inodes_t ** inode_ptr, int32_t inode_num)
 {
 	setFreq(2);
 	return 0;

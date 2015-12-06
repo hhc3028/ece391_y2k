@@ -28,6 +28,12 @@ void initialize_paging()
 
 	int x = getIndex(VIDEO);				// get the index to page table
 	pageTable[x] |= enable_present;	// set the present bit on
+	x = getIndex(VIDEO_1);				// get the index to page table
+	pageTable[x] |= enable_present;	// set the present bit on
+	x = getIndex(VIDEO_2);				// get the index to page table
+	pageTable[x] |= enable_present;	// set the present bit on
+	x = getIndex(VIDEO_3);				// get the index to page table
+	pageTable[x] |= enable_present;	// set the present bit on
 
 
 	pageDirct[0] |= (((unsigned int) pageTable) & 0xFFFFF000) | enable_present;		// set the present bit for the video
@@ -44,7 +50,7 @@ void change_task(uint8_t process_number) {
 	return;
 }
 
-/* Function tries to map a page directory entry that contains a desired physical address.
+/* Function tries to map a page directory entry that contains a desired physical qaddress.
  * If the desired physical address is 0, the function will look for the first free
  * large page and map it to the normal default position, right now default is just large page */
 int32_t map_page(uint32_t virtual, uint32_t physical) {

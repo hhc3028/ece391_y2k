@@ -10,6 +10,7 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
 keyboard.o: keyboard.c keyboard.h types.h lib.h i8259.h
 lib.o: lib.c lib.h types.h keyboard.h
 paging.o: paging.c x86_desc.h types.h paging.h lib.h
+pit.o: pit.c pit.h i8259.h types.h syscall.h lib.h
 rtc.o: rtc.c rtc.h types.h x86_desc.h i8259.h lib.h
 syscall.o: syscall.c syscall.h types.h lib.h rtc.h x86_desc.h keyboard.h \
   interrupt.h file_system.h paging.h

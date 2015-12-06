@@ -4,6 +4,7 @@
 .globl	keyboard_wrapper
 .globl	rtc_wrapper
 .globl	isr_wrapper
+.globl	pit_wrapper
 .globl	exception_divide_wrapper
 .globl	exception_step_wrapper
 .globl	exception_nmi_wrapper
@@ -52,6 +53,20 @@ rtc_wrapper:
 	pushal
 
 	call rtc_int_handler
+
+	popal
+	sti
+	leave
+	iret
+
+# Assembly linkage to the pit interrupt handler
+pit_wrapper:
+	pushl	%ebp
+	movl	%esp, %ebp
+	cli
+	pushal
+
+	#call pit_int_handler
 
 	popal
 	sti

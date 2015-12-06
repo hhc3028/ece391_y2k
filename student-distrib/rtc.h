@@ -26,7 +26,7 @@ void rtc_int_handler(void);
 //system call for rtc
 int32_t rtc_read(const int8_t * fname, int32_t * position, uint8_t* buf, int32_t length); 
 int32_t rtc_write(int8_t * fname, int32_t * position, const uint8_t* set_freq, int32_t nbytes);
-int32_t rtc_open();
+int32_t rtc_open(inodes_t ** inode_ptr, int32_t inode_num);
 int32_t rtc_close();
 
 //helper function to determine if x is power of 2

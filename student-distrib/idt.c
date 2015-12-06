@@ -24,6 +24,7 @@
 extern uint32_t rtc_wrapper(void);
 extern uint32_t keyboard_wrapper(void);
 extern uint32_t	isr_wrapper(void);
+extern uint32_t pit_wrapper(void);
 extern uint32_t	exception_divide_wrapper(void);
 extern uint32_t	exception_step_wrapper(void);
 extern uint32_t	exception_nmi_wrapper(void);
@@ -373,6 +374,7 @@ void init_idt() {
 	IDT_ENTRY_SETUP(&idt[0x28], (uint32_t)rtc_wrapper, KERNEL_CS, INTERR);
 
 	IDT_ENTRY_SETUP(&idt[0x21], (uint32_t)keyboard_wrapper, KERNEL_CS, INTERR);
+	IDT_ENTRY_SETUP(&idt[0x20], (uint32_t)pit_wrapper, KERNEL_CS, INTERR);
 
 	/* Set up the idtr to point to the idt */
 	lidt(idt_desc_ptr);

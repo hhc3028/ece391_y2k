@@ -175,7 +175,7 @@ typedef struct fop_t {
 } fop_t;
 
 typedef struct file_descriptor_t {
-	fop_t fop_ptr;
+	fop_t * fop_ptr;
 	inodes_t * inode_ptr;
 	int32_t file_position;
 	int32_t flags;
@@ -193,6 +193,7 @@ typedef struct pcb_t {
 	uint32_t ebp;
 	uint32_t esp;
 	uint32_t terminal_num;
+	uint32_t esp0;
 } pcb_t;
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */

@@ -174,7 +174,8 @@ entry (unsigned long magic, unsigned long addr)
 	
 	/* initialize keyboard */
 	initialize_keyboard();
-	
+	/* initialize function pointers */
+	func_init();
 	/* TESTING FILE SYSTEMS */
 	init_file_systems(starting_address);
 	//printf("Init File Systems Done\n");

@@ -22,6 +22,42 @@ static uint8_t processes = 0x00;
 
 /* Indicator for the current process we are on */
 static uint8_t open_process = 0x00;
+static uint8_t task = 0;
+static uint8_t running_process[3];
+/* Function Pointers */
+static fop_t stdout_ptr;
+static fop_t stdin_ptr;
+static fop_t file_ptr;
+static fop_t dir_ptr;
+static fop_t rtc_ptr;
+
+/* initialize func_init
+ * Not a system call, but a helper function that initializes the function pointers for the 5 different fops tables
+ * we are using for our system calls.  Called at kernel startup
+ */
+int32_t func_init() {
+	stdout_ptr.read = NULL;
+	stdout_ptr.write = terminal_write;
+	stdout_ptr.open = terminal_open;
+	stdout_ptr.close = terminal_close;
+	stdin_ptr.read = terminal_read;
+	stdin_ptr.write = NULL;
+	stdin_ptr.open = terminal_open;
+	stdin_ptr.close = terminal_close;
+	file_ptr.read = read_file;
+	file_ptr.write = write_file;
+	file_ptr.open = open_file;
+	file_ptr.close = close_file;
+	dir_ptr.read = read_dir;
+	dir_ptr.write = write_dir;
+	dir_ptr.open = open_dir;
+	dir_ptr.close = close_dir;
+	rtc_ptr.read = rtc_read;
+	rtc_ptr.write = rtc_write;
+	rtc_ptr.open = rtc_open;
+	rtc_ptr.close = rtc_close;
+	return 0;
+}
 
 /*
  *execute()
@@ -163,6 +199,7 @@ int32_t execute(const uint8_t * command)
 		process_control_block = parent_process_control_block;
 		process_control_block->parent_process_number = -1;
 		process_control_block->process_number = new_process;
+		process_control_block->esp0 = (_8MB - (_8KB)*(open_process));
 		process_control_block->parent_ebp = 0;
 		process_control_block->parent_esp = 0;
 		process_control_block->has_child = 0;
@@ -179,8 +216,9 @@ int32_t execute(const uint8_t * command)
 		process_control_block->parent_ebp = parent_process_control_block->ebp;
 		process_control_block->parent_esp = parent_process_control_block->esp;
 		process_control_block->has_child = 0;
-		process_control_block->ebp = tss.ebp;
-		process_control_block->esp = tss.esp;
+		process_control_block->ebp = 0x8000000;
+		process_control_block->esp = 0x83FFFFC;
+		process_control_block->esp0 = (_8MB - (_8KB)*(open_process));
 		open_process = new_process;
 	}
 
@@ -190,11 +228,11 @@ int32_t execute(const uint8_t * command)
 		process_control_block->fd[i].inode_ptr = NULL;
 		process_control_block->fd[i].flags = NOT_IN_USE;
 		process_control_block->fd[i].file_position = 0;
-		process_control_block->fd[i].fop_ptr.read = NULL;
-		process_control_block->fd[i].fop_ptr.write = NULL;
-		process_control_block->fd[i].fop_ptr.close = NULL;
-		process_control_block->fd[i].fop_ptr.open = NULL;
+		process_control_block->fd[i].fop_ptr = NULL;
 	}
+
+	//keep track of current running process in each terminal
+	running_process[task] = open_process;
 
 	//store exxtra arg into pcb buffer for arg
 	strcpy((int8_t*)process_control_block->arg_buf, (const int8_t*)arg_buffer);
@@ -260,7 +298,11 @@ int32_t halt(uint8_t status)
 				: "esp", "ebp", "esi", "edi", "edx", "ecx", "ebx");
 		execute((uint8_t*)"shell");
 	}
-
+	uint32_t i;
+	for(i = 0; i < 100; i++) {
+		process_control_block->arg_buf[i] = 0;
+	}
+	
 	//set parent process to has no child and update ksp and kbp
 	pcb_t * parent_pcb = (pcb_t *)( _8MB - (_8KB)*(process_control_block->parent_process_number + 1));
 	parent_pcb->has_child--;
@@ -271,6 +313,9 @@ int32_t halt(uint8_t status)
 	change_task(open_process);
 	flush_tlb();
 	
+	//update running process in each terminal
+	running_process[task] = open_process;
+
 
 	//set kernel stack bottom and tss to parent's kernel stack
 	tss.esp0 = (_8MB - (_8KB)*(process_control_block->parent_process_number) - 4);
@@ -308,6 +353,10 @@ int32_t open(const uint8_t* filename){
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 	//iterator to check open processes
 	int32_t i = 0;
+	/* Check if there is a filename */
+	if(filename == NULL) {
+		return -1;
+	}
 
 	/* Check if we have any free file descriptors */
 	while(process_control_block->fd[i].flags & IN_USE) {
@@ -320,13 +369,11 @@ int32_t open(const uint8_t* filename){
 		return -1;
 	}
 
+	/* Check if we are opening stdin */
 	if(strncmp((const int8_t*)filename, "stdin", 5) == 0) {
 		if(!(process_control_block->fd[0].flags & IN_USE)) {
 			strcpy((int8_t*)process_control_block->filenames[0], "stdin");
-			process_control_block->fd[0].fop_ptr.read = terminal_read;
-			process_control_block->fd[0].fop_ptr.write = NULL;
-			process_control_block->fd[0].fop_ptr.close = terminal_close;
-			process_control_block->fd[0].fop_ptr.open = terminal_open;
+			process_control_block->fd[0].fop_ptr = &stdin_ptr;
 			process_control_block->fd[0].flags = IN_USE;
 			process_control_block->fd[0].file_position = 0;
 			process_control_block->fd[0].inode_ptr = NULL;
@@ -337,13 +384,11 @@ int32_t open(const uint8_t* filename){
 		}
 	}
 
+	/* Check if we are opening stdout */
 	if(strncmp((const int8_t*)filename,"stdout", 6) == 0) {
 		if(!(process_control_block->fd[1].flags & IN_USE)) {
 			strcpy((int8_t*)process_control_block->filenames[1], "stdout");
-			process_control_block->fd[1].fop_ptr.read = NULL;
-			process_control_block->fd[1].fop_ptr.write = terminal_write;
-			process_control_block->fd[1].fop_ptr.close = terminal_close;
-			process_control_block->fd[1].fop_ptr.open = terminal_open;
+			process_control_block->fd[1].fop_ptr = &stdout_ptr;
 			process_control_block->fd[1].flags = IN_USE;
 			process_control_block->fd[1].file_position = 0;
 			process_control_block->fd[1].inode_ptr = NULL;
@@ -364,31 +409,23 @@ int32_t open(const uint8_t* filename){
 	switch(file.file_type) {
 		case 0 :
 			strcpy((int8_t*)process_control_block->filenames[i], "rtc");
-			process_control_block->fd[i].fop_ptr.read = rtc_read;
-			process_control_block->fd[i].fop_ptr.write = rtc_write;
-			process_control_block->fd[i].fop_ptr.close = rtc_close;
-			process_control_block->fd[i].fop_ptr.open = rtc_open;
+			process_control_block->fd[i].fop_ptr = &rtc_ptr;
+			process_control_block->fd[i].fop_ptr->open(&process_control_block->fd[i].inode_ptr, file.inode_num);
 			process_control_block->fd[i].flags = IN_USE;
 			process_control_block->fd[i].file_position = 0;
 			process_control_block->fd[i].inode_ptr = NULL;
 			return i;
 		case 1 :
 			strcpy((int8_t*)process_control_block->filenames[i], file.file_name);
-			process_control_block->fd[i].fop_ptr.read = read_dir;
-			process_control_block->fd[i].fop_ptr.write = write_dir;
-			process_control_block->fd[i].fop_ptr.close = close_dir;
-			process_control_block->fd[i].fop_ptr.open = open_dir;
-			process_control_block->fd[i].fop_ptr.open(&process_control_block->fd[i].inode_ptr, file.inode_num);
+			process_control_block->fd[i].fop_ptr = &dir_ptr;
+			process_control_block->fd[i].fop_ptr->open(&process_control_block->fd[i].inode_ptr, file.inode_num);
 			process_control_block->fd[i].flags = IN_USE;
 			process_control_block->fd[i].file_position = 0;
 			return i;
 		case 2 :
 			strcpy((int8_t*)process_control_block->filenames[i], file.file_name);
-			process_control_block->fd[i].fop_ptr.read = read_file;
-			process_control_block->fd[i].fop_ptr.write = write_file;
-			process_control_block->fd[i].fop_ptr.close = close_file;
-			process_control_block->fd[i].fop_ptr.open = open_file;
-			process_control_block->fd[i].fop_ptr.open(&process_control_block->fd[i].inode_ptr, file.inode_num);
+			process_control_block->fd[i].fop_ptr = &file_ptr;
+			process_control_block->fd[i].fop_ptr->open(&process_control_block->fd[i].inode_ptr, file.inode_num);
 			process_control_block->fd[i].flags = IN_USE;
 			process_control_block->fd[i].file_position = 0;
 			return i;
@@ -415,16 +452,16 @@ int32_t close(int32_t fd) {
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
 
+	/* Check if the fd is in use */
 	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block->fd[fd].fop_ptr.close == NULL) {
+	/* Check if there is a function to close */
+	if(process_control_block->fd[fd].fop_ptr->close == NULL) {
 		return -1;
 	}
-	process_control_block->fd[fd].fop_ptr.read = NULL;
-	process_control_block->fd[fd].fop_ptr.write = NULL;
-	process_control_block->fd[fd].fop_ptr.close = NULL;
-	process_control_block->fd[fd].fop_ptr.open = NULL;
+	/* Clear the process_control_block */
+	process_control_block->fd[fd].fop_ptr = NULL;
 	process_control_block->fd[fd].flags = NOT_IN_USE;
 	process_control_block->fd[fd].file_position = 0;
 	process_control_block->fd[fd].inode_ptr = NULL;
@@ -443,17 +480,23 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
 	if(fd < 0 || fd > 7) {
 		return -1;
 	}
+
+	/* Check if there is a buffer */
+	if(buf == NULL) {
+		return -1;
+	}
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
-
+	/* Check if fd is in use */
 	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block->fd[fd].fop_ptr.read == NULL) {
+	/* Check if there is a function pointer */
+	if(process_control_block->fd[fd].fop_ptr->read == NULL) {
 		return -1;
 	}
 
-	return process_control_block->fd[fd].fop_ptr.read(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
+	return process_control_block->fd[fd].fop_ptr->read(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
 }
 
 
@@ -469,18 +512,35 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes) {
 	if(fd < 0 || fd > 7) {
 		return -1;
 	}
+
+	/* Check if there is a buffer */
+	if(buf == NULL) {
+		return -1;
+	}
 	//get the pcb - 8mb is end of kernel, we subtract the stack size of each open process
 	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process + 1));
-
+	/* Check if the fd is in use */
 	if(!(process_control_block->fd[fd].flags & IN_USE)) {
 		return -1;
 	}
-	if(process_control_block->fd[fd].fop_ptr.write == NULL) {
+	/* Check if there is a function pointer */
+	if(process_control_block->fd[fd].fop_ptr->write == NULL) {
 		return -1;
 	}
 
-	return process_control_block->fd[fd].fop_ptr.write(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
+	return process_control_block->fd[fd].fop_ptr->write(process_control_block->filenames[fd], &process_control_block->fd[fd].file_position, buf, nbytes);
 }
+
+
+/*
+ *getargs call reads the program’s command line arguments 
+ *into a user-level buffer. Basically it fetch the current program's pcb
+ *data to access the arg_buf saved in that struct (during execute)
+ *
+ *Input: buf - the buffer to copy the arg to
+ *       nbytes - length to copy/read
+ *
+ */
 
 int32_t getargs(uint8_t* buf, int32_t nbytes)
 {
@@ -513,16 +573,68 @@ int32_t getargs(uint8_t* buf, int32_t nbytes)
 	return 0;					// return 0 (SUCCESS)
 }
 
-
+/*
+ *vidmap call maps the text-mode video memory into user space
+ *at a pre-set virtual address. It will also map a page
+ *from physical video memory address to the virtual address we choose
+ *
+ *Input: double pointer of the virtual address of video memory
+ *Output: -1 if fail (check for boundary)
+ *         otherwise return virtual address we map to
+ *
+ */
 
 
 int32_t vidmap(uint8_t** screen_start)
 {
-	if((uint32_t)screen_start <= 0x00800000) {
+	/* Check if there is a memory location */
+	if(screen_start == NULL) {
 		return -1;
 	}
-	map_page(0x21000000, 0xB8000);
+	/* Check if the screen is within the task space */
+	if((uint32_t)screen_start < _128MB || (uint32_t)screen_start > _132MB) {
+		return -1;
+	}
+	switch(task) {
+		case 0 :
+			map_page(vir_vid + _4KB * task, VIDEO);
+			break;
+		case 1 :
+			map_page(vir_vid + _4KB * task, VIDEO);
+			break;
+		case 2 :
+			map_page(vir_vid + _4KB * task, VIDEO);
+			break;
+	}
 	flush_tlb();
-	*screen_start = (uint8_t *)0x21000000;
-	return 0x21000000;
+	*screen_start = (uint8_t *)(vir_vid + _4KB * task);
+	return vir_vid;
+}
+
+
+int32_t context_switch(uint8_t cur_task, uint32_t * _esp, uint32_t * _ebp){
+	task = cur_task;
+	open_process = running_process[cur_task];
+	change_task(open_process);
+	flush_tlb();
+	pcb_t * process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+	*_esp = process_control_block->esp;
+	*_ebp = process_control_block->ebp;
+	tss.esp0 = process_control_block->esp0;
+	return 0;
+}
+
+int32_t save_pcb(void){
+
+	pcb_t * parent_process_control_block = (pcb_t *)(_8MB - (_8KB)*(open_process +1));
+
+	asm volatile ("				\
+		movl %%ebp, %0		   ;\
+		movl %%esp, %1		   ;\
+			" : "=a" ((parent_process_control_block->ebp)), "=b" ((parent_process_control_block->esp))	\
+			  : /* no inputs */																			\
+			  : "ebp", "esp");	
+
+	return 0;
+
 }
